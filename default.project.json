@@ -1,0 +1,38 @@
+{
+    "name": "Collecting Adventure",
+    "tree": {
+        "$className": "DataModel",
+        "ReplicatedFirst": {
+            "Source": {
+                "$path": "src/ReplicatedFirst"
+            }
+        },
+        "ReplicatedStorage": {
+            "Source": {
+                "$path": "src/ReplicatedStorage"
+            }
+        },
+        "ServerScriptService": {
+            "Source": {
+                "$path": "src/ServerScriptService"
+            }
+        },
+        "ServerStorage": {
+            "Source": {
+                "$path": "src/ServerStorage"
+            }
+        },
+        "StarterPlayer": {
+            "StarterCharacterScripts": {
+                "Source": {
+                    "$path": "src/StarterCharacterScripts"
+                }
+            },
+            "StarterPlayerScripts": {
+                "Source": {
+                    "$path": "src/StarterPlayerScripts"
+                }
+            }
+        }
+    }
+}
