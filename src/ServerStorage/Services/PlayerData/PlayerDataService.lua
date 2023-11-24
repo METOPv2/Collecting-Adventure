@@ -12,6 +12,7 @@ local PlayerDataBase = DataStoreService:GetDataStore("PlayerData")
 
 -- Types
 export type PlayerData = {
+	Inventory: {},
 	Visits: number,
 	FirstJoin: number,
 	LeaveTime: number,
@@ -28,6 +29,7 @@ local PlayerDataService = Knit.CreateService({
 	BlockedDataForClient = {},
 	AllowedDataFromClient = {},
 	Template = {
+		Inventory = {},
 		Visits = 0,
 		FirstJoin = workspace:GetServerTimeNow(),
 		LeaveTime = 0,

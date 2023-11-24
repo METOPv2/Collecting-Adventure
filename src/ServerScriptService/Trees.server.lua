@@ -1,12 +1,27 @@
 -- Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
+
+-- Packages
+local Knit = require(ReplicatedStorage.Packages.knit)
 
 -- Assets
 local treesAssets: Folder = ReplicatedStorage.Assets.Trees
 local fruitsAssets: Folder = ReplicatedStorage.Assets.Fruits
 
+-- Data bases
+local Fruits = require(ServerStorage.Source.DataBases.Fruits)
+
+-- Types
+type Fruit = {
+	Name: string,
+}
+
 -- Functions
 local function SpawnFruit(tree: Model, part: Part)
+	-- Services
+	local PlayerDataService = Knit.GetService("PlayerDataService")
+
 	-- New fruit model
 	local fruit: Model = fruitsAssets:FindFirstChild(tree.Name):Clone()
 	local size: Vector3 = fruit:GetExtentsSize()
@@ -26,6 +41,13 @@ local function SpawnFruit(tree: Model, part: Part)
 	proximityPrompt.ActionText = "Harvest"
 	proximityPrompt.RequiresLineOfSight = false
 	proximityPrompt.Triggered:Connect(function(playerWhoTriggered)
+		local fruitData = assert(Fruits[fruit.Name], `{fruit.Name}'s data not found or doesn't exist.`)
+		local newFruit: Fruit = {
+			Name = fruitData.Name,
+		}
+
+		PlayerDataService:InsertTableAsync(playerWhoTriggered, "Inventory", newFruit)
+
 		fruit:Destroy()
 		task.delay(15, coroutine.wrap(SpawnFruit), tree, part)
 	end)
@@ -51,6 +73,9 @@ local function SpawnTree(treePart: Part)
 		coroutine.wrap(SpawnFruit)(tree, fruitPart)
 	end
 end
+
+-- Wait knit to load
+Knit.OnStart():await()
 
 -- Spawn trees
 for _, part: Part in ipairs(workspace.Trees:GetChildren()) do
