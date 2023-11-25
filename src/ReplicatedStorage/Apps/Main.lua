@@ -44,7 +44,7 @@ function Main:render()
 	}, {
 		OpenInventory = Roact.createElement("ImageButton", {
 			AnchorPoint = Vector2.new(0.5, 1),
-			Position = UDim2.new(0.5, 0, 1, -10),
+			Position = UDim2.new(0.5, 0, 1, -40),
 			Size = UDim2.fromOffset(50, 50),
 			BorderSizePixel = 0,
 			BackgroundTransparency = 1,
@@ -64,19 +64,36 @@ function Main:render()
 				button.ImageColor3 = Color3.fromRGB(255, 255, 255)
 			end,
 		}),
-		FruitBucks = Roact.createElement("TextLabel", {
-			AnchorPoint = Vector2.new(1, 1),
-			Position = UDim2.new(1, -10, 1, -10),
-			BackgroundTransparency = 1,
+		FruitBucks = Roact.createElement("Frame", {
+			AnchorPoint = Vector2.new(0.5, 1),
+			Position = UDim2.fromScale(0.5, 1),
+			Size = UDim2.fromOffset(200, 30),
 			BorderSizePixel = 0,
-			AutomaticSize = Enum.AutomaticSize.XY,
-			RichText = true,
-			Text = self.fruitBucks:map(function(value)
-				return `<stroke thickness="2" color="rgb(51, 74, 50)"><b>Fruit Bucks: <font size="24">{value}</font></b></stroke>`
-			end),
-			TextSize = 16,
-			TextColor3 = Color3.fromRGB(255, 255, 255),
-			Font = Enum.Font.Ubuntu,
+			BackgroundColor3 = Color3.fromRGB(41, 41, 41),
+		}, {
+			UICorner = Roact.createElement("UICorner", {
+				CornerRadius = UDim.new(0, 5),
+			}),
+			Frame = Roact.createElement("Frame", {
+				AnchorPoint = Vector2.new(0, 1),
+				Position = UDim2.fromScale(0, 1),
+				Size = UDim2.fromScale(1, 0.5),
+				BorderSizePixel = 0,
+				BackgroundColor3 = Color3.fromRGB(41, 41, 41),
+			}),
+			TextLabel = Roact.createElement("TextLabel", {
+				Size = UDim2.fromScale(1, 1),
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				RichText = true,
+				Text = self.fruitBucks:map(function(value)
+					return `<b>Fruit Bucks: <font size="18">{value}</font></b>`
+				end),
+				TextSize = 14,
+				TextColor3 = Color3.fromRGB(255, 255, 255),
+				Font = Enum.Font.Ubuntu,
+				ZIndex = 2,
+			}),
 		}),
 	})
 end

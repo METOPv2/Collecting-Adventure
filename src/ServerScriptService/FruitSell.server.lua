@@ -28,13 +28,13 @@ local function Touched(otherPart)
 	sellDebounce[playerId] = true
 
 	local PlayerDataService = Knit.GetService("PlayerDataService")
-	local Inventory = PlayerDataService:GetAsync(player, "Inventory")
+	local Fruits = PlayerDataService:GetAsync(player, "Fruits")
 
-	if #Inventory ~= 0 then
-		for _, fruit in pairs(Inventory) do
+	if #Fruits ~= 0 then
+		for _, fruit in pairs(Fruits) do
 			local fruitData = FruitsDataBase[fruit.Id]
 			PlayerDataService:IncrementAsync(player, "FruitBucks", fruitData.SellValue)
-			PlayerDataService:RemoveTableAsync(player, "Inventory", fruit)
+			PlayerDataService:RemoveAsync(player, "Fruits", fruit)
 		end
 	end
 

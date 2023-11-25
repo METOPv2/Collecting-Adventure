@@ -11,6 +11,7 @@ local fruitsAssets: Folder = ReplicatedStorage.Assets.Fruits
 
 -- Data bases
 local FruitsDataBase = require(ServerStorage.Source.DataBases.Fruits)
+local BagsDataBase = require(ServerStorage.Source.DataBases.Bags)
 
 -- Types
 type Fruit = {
@@ -43,13 +44,30 @@ local function SpawnFruit(tree: Model, part: Part)
 	proximityPrompt.RequiresLineOfSight = false
 	proximityPrompt.HoldDuration = fruitData.HarvestTime
 	proximityPrompt.Triggered:Connect(function(playerWhoTriggered)
+		-- Checks
+		if
+			playerWhoTriggered:DistanceFromCharacter(fruit.PrimaryPart.Position)
+			> proximityPrompt.MaxActivationDistance
+		then
+			return
+		end
+
+		local playerFruits = PlayerDataService:GetAsync(playerWhoTriggered, "Fruits")
+		local playerBag = PlayerDataService:GetAsync(playerWhoTriggered, "EquippedBag")
+		local bagData = BagsDataBase[playerBag]
+		if playerBag == "" or #playerFruits + 1 > bagData.MaxFruits then
+			return
+		end
+
+		-- New fruit
 		local newFruit: Fruit = {
 			Name = fruitData.Name,
 			Id = fruitData.Id,
 		}
 
-		PlayerDataService:InsertTableAsync(playerWhoTriggered, "Inventory", newFruit)
+		PlayerDataService:InsertInTableAsync(playerWhoTriggered, "Fruits", newFruit)
 
+		-- Respawn fruit
 		fruit:Destroy()
 		task.delay(15, coroutine.wrap(SpawnFruit), tree, part)
 	end)

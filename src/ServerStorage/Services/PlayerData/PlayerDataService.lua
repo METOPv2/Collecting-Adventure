@@ -12,7 +12,9 @@ local PlayerDataBase = DataStoreService:GetDataStore("PlayerData")
 
 -- Types
 export type PlayerData = {
-	Inventory: {},
+	Fruits: {},
+	Bags: {},
+	EquippedBag: string,
 	FruitBucks: number,
 	Visits: number,
 	FirstJoin: number,
@@ -30,7 +32,9 @@ local PlayerDataService = Knit.CreateService({
 	BlockedDataForClient = {},
 	AllowedDataFromClient = {},
 	Template = {
-		Inventory = {},
+		Fruits = {},
+		Bags = { "Pockets" },
+		EquippedBag = "",
 		FruitBucks = 0,
 		Visits = 0,
 		FirstJoin = workspace:GetServerTimeNow(),
@@ -266,7 +270,7 @@ function PlayerDataService.Client:IncrementAsync(player: Player, key: any, value
 	self.Server:IncrementAsync(player, key, value)
 end
 
-function PlayerDataService:InsertTableAsync(
+function PlayerDataService:InsertInTableAsync(
 	player: Player,
 	key: any,
 	value: { any } | { [any]: any },
@@ -278,9 +282,8 @@ function PlayerDataService:InsertTableAsync(
 	assert(key ~= nil, "Key is missing or nil.")
 	assert(value ~= nil, "Value is missing or nil.")
 	assert(value == value, `Value may be nan. Value: "{value}".`)
-	local valueType = typeof(value)
-	local dataType = typeof(self:GetAsync(player, key))
-	assert(valueType == "table", `Value must be table. Got "{valueType}".`)
+	local dataInkey = self:GetAsync(player, key)
+	local dataType = typeof(dataInkey)
 	assert(dataType == "table", `Cannot insert table in "{dataType}" data.`)
 
 	local playerId = tostring(player.UserId)
@@ -291,28 +294,23 @@ function PlayerDataService:InsertTableAsync(
 		until self.SessionDataBase[playerId]
 	end
 
-	local previousValue = table.clone(self.SessionDataBase[playerId][key])
+	local previousValue = table.clone(dataInkey)
 
 	table.insert(self.SessionDataBase[playerId][key], value)
-	self.DataChanged:Fire(player, key, self.SessionDataBase[playerId][key], previousValue)
+	self.DataChanged:Fire(player, key, self:GetAsync(player, key), previousValue)
 
 	if not table.find(self.BlockedDataForClient, key) or (options and not options.HiddenFromClient) then
-		self.Client.DataChanged:Fire(player, key, self.SessionDataBase[playerId][key], previousValue)
+		self.Client.DataChanged:Fire(player, key, self:GetAsync(player, key), previousValue)
 	end
 end
 
-function PlayerDataService.Client:InsertTableAsync(player: Player, key: any, value: any)
+function PlayerDataService.Client:InsertInTableAsync(player: Player, key: any, value: any)
 	assert(table.find(self.Server.AllowedDataFromClient, key), `{player.Name} have no access to save data in {key}.`)
 
-	self.Server:InsertTableAsync(player, key, value)
+	self.Server:InsertInTableAsync(player, key, value)
 end
 
-function PlayerDataService:RemoveTableAsync(
-	player: Player,
-	key: any,
-	value: { any } | { [any]: any },
-	options: DataOptions?
-)
+function PlayerDataService:RemoveAsync(player: Player, key: any, value: any?, options: DataOptions?)
 	assert(player, "Player is missing or nil.")
 	assert(typeof(player) == "Instance", `Player type must be Instance. Got {typeof(player)}.`)
 	assert(player.ClassName == "Player", `Player class name must be Player. Got {player.ClassName}.`)
@@ -320,9 +318,9 @@ function PlayerDataService:RemoveTableAsync(
 	assert(value, "Table is missing or nil.")
 	assert(value == value, `Table may be nan. Table: "{value}".`)
 	local valueType = typeof(value)
-	local dataType = typeof(self:GetAsync(player, key))
-	assert(valueType == "table", `Type of table must be table. Got "{valueType}".`)
-	assert(dataType == "table", `Cannot remove table in "{dataType}" data.`)
+	local dataInkey = self:GetAsync(player, key)
+	local dataType = typeof(dataInkey)
+	assert(dataType == "table", `Cannot remove data from {dataType}. Table only.`)
 
 	local playerId = tostring(player.UserId)
 
@@ -332,36 +330,49 @@ function PlayerDataService:RemoveTableAsync(
 		until self.SessionDataBase[playerId]
 	end
 
-	for i, t in pairs(self.SessionDataBase[playerId][key]) do
-		if typeof(t) == "table" and #t == #value then
+	if value == nil then
+		return self:SetAsync(player, key, nil)
+	end
+
+	for i, t in pairs(dataInkey) do
+		if valueType == "table" and typeof(t) == valueType and #t == #value then
 			local same = true
 
-			for k, v in ipairs(t) do
-				if value[k] ~= v and typeof(value[k]) ~= typeof(v) and same then
+			for k, v in pairs(t) do
+				if value[k] ~= v and same then
 					same = false
 				end
 			end
 
 			if same then
-				local previousValue = table.clone(self.SessionDataBase[playerId][key])
+				local oldValue = table.clone(dataInkey)
 
 				self.SessionDataBase[playerId][key][i] = nil
-				self.DataChanged:Fire(player, key, self.SessionDataBase[playerId][key], previousValue)
+				self.DataChanged:Fire(player, key, self:GetAsync(player, key), oldValue)
 
 				if not table.find(self.BlockedDataForClient, key) or (options and not options.HiddenFromClient) then
-					self.Client.DataChanged:Fire(player, key, self.SessionDataBase[playerId][key], previousValue)
+					self.Client.DataChanged:Fire(player, key, self:GetAsync(player, key), oldValue)
 				end
 
 				break
+			end
+		elseif valueType ~= "table" and typeof(t) == valueType and value == t then
+			local oldValue = table.clone(self:GetAsync(player, key))
+
+			self.SessionDataBase[playerId][key][i] = nil
+			self.DataChanged:Fire(player, key, self:GetAsync(player, key), oldValue)
+
+			if not table.find(self.BlockedDataForClient, key) or (options and not options.HiddenFromClient) then
+				self.Client.DataChanged:Fire(player, key, self:GetAsync(player, key), oldValue)
 			end
 		end
 	end
 end
 
-function PlayerDataService.Client:RemoveTableAsync(player: Player, key: any, value: any)
+function PlayerDataService.Client:RemoveAsync(player: Player, key: any, value: any)
 	assert(table.find(self.Server.AllowedDataFromClient, key), `{player.Name} have no access to save data in {key}.`)
 
-	self.Server:RemoveTableAsync(player, key, value)
+	self.Server:RemoveAsync(player, key, value)
 end
 
 return PlayerDataService

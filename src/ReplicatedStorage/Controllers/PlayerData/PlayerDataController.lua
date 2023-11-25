@@ -63,26 +63,21 @@ function PlayerDataController:IncrementAsync(key: any, value: number)
 	self.PlayerDataService:IncrementAsync(key, value):catch(warn)
 end
 
-function PlayerDataController:InsertTableAsync(key: any, value: {})
+function PlayerDataController:InsertInTableAsync(key: any, value: {})
 	assert(key, "Key is missing or nil.")
 	assert(value, "Value is missing or nil.")
 	assert(
 		type(self:GetPlayerData()[key]) == "number",
 		`Cannot insert table in {type(self:GetPlayerData()[key])} data type. Table only.`
 	)
-	assert(type(value) == "table", `Value must be table. Got {type(value)}.`)
-	self.PlayerDataService:InsertTableAsync(key, value):catch(warn)
+	self.PlayerDataService:InsertInTableAsync(key, value):catch(warn)
 end
 
-function PlayerDataController:RemoveTableAsync(key: any, value: {})
+function PlayerDataController:RemoveAsync(key: any, value: {})
 	assert(key, "Key is missing or nil.")
 	assert(value, "Value is missing or nil.")
-	assert(
-		type(self:GetPlayerData()[key]) == "number",
-		`Cannot remove table from {type(self:GetPlayerData()[key])} data type. Table only.`
-	)
-	assert(type(value) == "table", `Value must be table. Got {type(value)}.`)
-	self.PlayerDataService:RemoveTableAsync(key, value):catch(warn)
+
+	self.PlayerDataService:RemoveAsync(key, value):catch(warn)
 end
 
 return PlayerDataController
