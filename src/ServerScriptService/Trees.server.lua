@@ -10,7 +10,7 @@ local treesAssets: Folder = ReplicatedStorage.Assets.Trees
 local fruitsAssets: Folder = ReplicatedStorage.Assets.Fruits
 
 -- Data bases
-local Fruits = require(ServerStorage.Source.DataBases.Fruits)
+local FruitsDataBase = require(ServerStorage.Source.DataBases.Fruits)
 
 -- Types
 type Fruit = {
@@ -23,6 +23,7 @@ local function SpawnFruit(tree: Model, part: Part)
 	local PlayerDataService = Knit.GetService("PlayerDataService")
 
 	-- New fruit model
+	local fruitData = assert(FruitsDataBase[tree.Name], `{tree.Name}'s data not found or doesn't exist.`)
 	local fruit: Model = fruitsAssets:FindFirstChild(tree.Name):Clone()
 	local size: Vector3 = fruit:GetExtentsSize()
 	fruit:PivotTo(
@@ -40,8 +41,8 @@ local function SpawnFruit(tree: Model, part: Part)
 	local proximityPrompt = Instance.new("ProximityPrompt")
 	proximityPrompt.ActionText = "Harvest"
 	proximityPrompt.RequiresLineOfSight = false
+	proximityPrompt.HoldDuration = fruitData.HarvestTime
 	proximityPrompt.Triggered:Connect(function(playerWhoTriggered)
-		local fruitData = assert(Fruits[fruit.Name], `{fruit.Name}'s data not found or doesn't exist.`)
 		local newFruit: Fruit = {
 			Name = fruitData.Name,
 		}
