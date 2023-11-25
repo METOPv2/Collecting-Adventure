@@ -45,6 +45,7 @@ local function SpawnFruit(tree: Model, part: Part)
 	proximityPrompt.Triggered:Connect(function(playerWhoTriggered)
 		local newFruit: Fruit = {
 			Name = fruitData.Name,
+			Id = fruitData.Id,
 		}
 
 		PlayerDataService:InsertTableAsync(playerWhoTriggered, "Inventory", newFruit)
