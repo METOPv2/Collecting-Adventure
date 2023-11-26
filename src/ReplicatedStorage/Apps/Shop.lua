@@ -1,0 +1,336 @@
+-- Services
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Packages
+local Roact = require(ReplicatedStorage:WaitForChild("Packages").roact)
+local Knit = require(ReplicatedStorage:WaitForChild("Packages").knit)
+
+-- Assets
+local bagsAssets = ReplicatedStorage:WaitForChild("Assets").Bags
+
+-- Components
+local WindowComponent = require(ReplicatedStorage:WaitForChild("Source").Components.Window)
+
+local function Tab(props)
+	local text = props.text
+	local activeTab = props.activeTab
+	local changeActiveTab = props.changeActiveTab
+
+	return Roact.createElement("Frame", {
+		Size = UDim2.new(1, 0, 0, 20),
+		BorderSizePixel = 0,
+		BackgroundColor3 = Color3.fromRGB(32, 32, 32),
+	}, {
+		UICorner = Roact.createElement("UICorner", {
+			CornerRadius = UDim.new(0, 5),
+		}),
+		UIStroke = Roact.createElement("UIStroke", {
+			Color = activeTab:map(function(value)
+				if text == "Robux" then
+					return value == text and Color3.fromRGB(55, 231, 76) or Color3.fromRGB(28, 130, 40)
+				end
+
+				return value == text and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(167, 167, 167)
+			end),
+		}),
+		Button = Roact.createElement("TextButton", {
+			Size = UDim2.fromScale(1, 1),
+			BorderSizePixel = 0,
+			BackgroundTransparency = 1,
+			Text = text,
+			TextSize = 12,
+			TextColor3 = activeTab:map(function(value)
+				if text == "Robux" then
+					return value == text and Color3.fromRGB(55, 231, 76) or Color3.fromRGB(28, 130, 40)
+				end
+
+				return value == text and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(167, 167, 167)
+			end),
+			Font = Enum.Font.Ubuntu,
+			[Roact.Event.Activated] = function()
+				changeActiveTab(text)
+			end,
+			TextXAlignment = Enum.TextXAlignment.Left,
+		}, {
+			UIPadding = Roact.createElement("UIPadding", {
+				PaddingLeft = UDim.new(0, 5),
+			}),
+		}),
+	})
+end
+
+local function Tabs(props)
+	local tabs = props.tabs
+	local activeTab = props.activeTab
+	local changeActiveTab = props.changeActiveTab
+	local elements = {}
+
+	table.insert(
+		elements,
+		Roact.createElement(Tab, {
+			text = "Robux",
+			activeTab = activeTab,
+			changeActiveTab = changeActiveTab,
+		})
+	)
+
+	for _, tab in ipairs(tabs) do
+		table.insert(
+			elements,
+			Roact.createElement(Tab, {
+				text = tab,
+				activeTab = activeTab,
+				changeActiveTab = changeActiveTab,
+			})
+		)
+	end
+
+	return Roact.createFragment(elements)
+end
+
+local function Holder(props)
+	local name = props.name
+	local activeTab = props.activeTab
+	local itemsElement = props.itemsElement
+
+	return Roact.createElement("Frame", {
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		Visible = activeTab:map(function(value)
+			return value == name
+		end),
+	}, {
+		Holder = Roact.createElement("ScrollingFrame", {
+			Size = UDim2.new(1, -10, 1, -10),
+			Position = UDim2.fromOffset(5, 5),
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			ScrollBarThickness = 5,
+			ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255),
+			AutomaticCanvasSize = Enum.AutomaticSize.Y,
+			ScrollingDirection = Enum.ScrollingDirection.Y,
+			CanvasSize = UDim2.fromOffset(0, 0),
+			ClipsDescendants = false,
+		}, {
+			UIPadding = Roact.createElement("UIPadding", {
+				PaddingBottom = UDim.new(0, 1),
+				PaddingLeft = UDim.new(0, 1),
+				PaddingRight = UDim.new(0, 1),
+				PaddingTop = UDim.new(0, 1),
+			}),
+			UIListLayout = Roact.createElement("UIListLayout", {
+				Wraps = true,
+				FillDirection = Enum.FillDirection.Horizontal,
+				Padding = UDim.new(0, 5),
+				SortOrder = Enum.SortOrder.Name,
+			}),
+			Items = itemsElement,
+		}),
+	})
+end
+
+local function Robux()
+	local elements = {}
+
+	return Roact.createFragment(elements)
+end
+
+local function Bag(props)
+	local ShopController = Knit.GetController("ShopController")
+	local PlayerEquipmentController = Knit.GetController("PlayerEquipmentController")
+
+	local bag = props.bag
+	local model: Model = bagsAssets:FindFirstChild(bag.Id):Clone()
+	local size: Vector3 = model:GetExtentsSize()
+	local pivot: CFrame = model:GetPivot()
+	local cameraRef = Roact.createRef()
+	local hovering, updateHover = Roact.createBinding(false)
+
+	return Roact.createElement("Frame", {
+		BackgroundColor3 = Color3.fromRGB(46, 46, 46),
+		BorderSizePixel = 0,
+		Size = UDim2.fromOffset(50, 50),
+	}, {
+		UIStroke = Roact.createElement("UIStroke", {
+			Transparency = 0.8,
+		}),
+		UICorner = Roact.createElement("UICorner", {
+			CornerRadius = UDim.new(0, 5),
+		}),
+		Equip = Roact.createElement("TextButton", {
+			Size = UDim2.fromScale(1, 1),
+			BorderSizePixel = 0,
+			BackgroundTransparency = 1,
+			Text = "",
+			ZIndex = 2,
+			[Roact.Event.Activated] = function()
+				ShopController:BuyBag(bag.Id)
+			end,
+			[Roact.Event.MouseEnter] = function()
+				updateHover(true)
+			end,
+			[Roact.Event.MouseLeave] = function()
+				updateHover(false)
+			end,
+		}),
+		ViewportFrame = Roact.createElement("ViewportFrame", {
+			Size = UDim2.fromScale(1, 1),
+			BorderSizePixel = 0,
+			BackgroundTransparency = 1,
+			CurrentCamera = cameraRef,
+			LightColor = Color3.fromRGB(255, 255, 255),
+		}, {
+			Camera = Roact.createElement("Camera", {
+				CFrame = CFrame.lookAt(pivot.Position + size, pivot.Position),
+				[Roact.Ref] = cameraRef,
+			}),
+			WorldModel = Roact.createElement("WorldModel", {
+				[Roact.Ref] = function(ref)
+					model.Parent = ref
+				end,
+			}),
+		}),
+		Info = Roact.createElement("Frame", {
+			AnchorPoint = Vector2.new(0, 1),
+			BorderSizePixel = 0,
+			BackgroundColor3 = Color3.fromRGB(46, 46, 46),
+			AutomaticSize = Enum.AutomaticSize.XY,
+			Visible = hovering,
+			ZIndex = 3,
+		}, {
+			UIListLayout = Roact.createElement("UIListLayout", {
+				FillDirection = Enum.FillDirection.Vertical,
+				HorizontalAlignment = Enum.HorizontalAlignment.Left,
+				VerticalAlignment = Enum.VerticalAlignment.Bottom,
+				SortOrder = Enum.SortOrder.Name,
+			}),
+			UIStroke = Roact.createElement("UIStroke", {
+				Transparency = 0.8,
+				Color = Color3.fromRGB(255, 255, 255),
+			}),
+			UICorner = Roact.createElement("UICorner", {
+				CornerRadius = UDim.new(0, 5),
+			}),
+			UIPadding = Roact.createElement("UIPadding", {
+				PaddingLeft = UDim.new(0, 5),
+				PaddingBottom = UDim.new(0, 5),
+				PaddingTop = UDim.new(0, 5),
+				PaddingRight = UDim.new(0, 5),
+			}),
+			[0] = Roact.createElement("TextLabel", {
+				AutomaticSize = Enum.AutomaticSize.XY,
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				Text = bag.Name,
+				TextColor3 = Color3.fromRGB(255, 255, 255),
+				TextSize = 14,
+				Font = Enum.Font.Ubuntu,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextYAlignment = Enum.TextYAlignment.Bottom,
+				ZIndex = 4,
+			}),
+			[1] = Roact.createElement("TextLabel", {
+				AutomaticSize = Enum.AutomaticSize.XY,
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				Text = `Capacity: {bag.MaxFruits}`,
+				TextColor3 = Color3.fromRGB(255, 255, 255),
+				TextSize = 12,
+				Font = Enum.Font.Ubuntu,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextYAlignment = Enum.TextYAlignment.Bottom,
+				ZIndex = 4,
+			}),
+			[2] = Roact.createElement("TextLabel", {
+				AutomaticSize = Enum.AutomaticSize.XY,
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				Text = PlayerEquipmentController:DoOwnBag(bag.Id) and "Owned"
+					or `Price: {bag.Price == 0 and "Free" or bag.Price}`,
+				TextColor3 = Color3.fromRGB(37, 199, 56),
+				TextSize = 12,
+				Font = Enum.Font.Ubuntu,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextYAlignment = Enum.TextYAlignment.Bottom,
+				ZIndex = 4,
+			}),
+		}),
+	})
+end
+
+local function Bags()
+	local PlayerEquipmentController = Knit.GetController("PlayerEquipmentController")
+	local bagData = PlayerEquipmentController:GetBagData()
+	local elements = {}
+
+	for _, value in pairs(bagData) do
+		table.insert(elements, Roact.createElement(Bag, { bag = value }))
+	end
+
+	return Roact.createFragment(elements)
+end
+
+-- Shop app
+local Shop = Roact.Component:extend("Shop")
+
+function Shop:render()
+	local onClose = self.props.onClose
+
+	local activeTab, changeActiveTab = Roact.createBinding("Bags")
+
+	return Roact.createElement("ScreenGui", {
+		ResetOnSpawn = false,
+	}, {
+		Contrainer = Roact.createElement(WindowComponent, {
+			title = "Shop",
+			size = UDim2.fromOffset(400, 300),
+			onClose = onClose,
+		}, {
+			Tabs = Roact.createElement("ScrollingFrame", {
+				Size = UDim2.new(0, 150, 1, 0),
+				BorderSizePixel = 0,
+				BackgroundColor3 = Color3.fromRGB(31, 31, 31),
+				CanvasSize = UDim2.fromOffset(0, 0),
+				AutomaticCanvasSize = Enum.AutomaticSize.Y,
+				ScrollBarThickness = 5,
+				ScrollingDirection = Enum.ScrollingDirection.Y,
+			}, {
+				UIPadding = Roact.createElement("UIPadding", {
+					PaddingLeft = UDim.new(0, 6),
+					PaddingBottom = UDim.new(0, 6),
+					PaddingTop = UDim.new(0, 6),
+					PaddingRight = UDim.new(0, 6),
+				}),
+				UIListLayout = Roact.createElement("UIListLayout", {
+					HorizontalAlignment = Enum.HorizontalAlignment.Left,
+					VerticalAlignment = Enum.VerticalAlignment.Top,
+					FillDirection = Enum.FillDirection.Vertical,
+					Padding = UDim.new(0, 6),
+					SortOrder = Enum.SortOrder.Name,
+				}),
+				Tabs = Roact.createElement(
+					Tabs,
+					{ activeTab = activeTab, changeActiveTab = changeActiveTab, tabs = { "Bags" } }
+				),
+			}),
+			Contrainer = Roact.createElement("Frame", {
+				Position = UDim2.fromOffset(150, 0),
+				Size = UDim2.new(1, -150, 1, 0),
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+			}, {
+				Robux = Roact.createElement(
+					Holder,
+					{ name = "Robux", itemsElement = Roact.createElement(Robux), activeTab = activeTab }
+				),
+				Bags = Roact.createElement(
+					Holder,
+					{ name = "Bags", itemsElement = Roact.createElement(Bags), activeTab = activeTab }
+				),
+			}),
+		}),
+	})
+end
+
+return Shop

@@ -8,6 +8,7 @@ local Knit = require(ReplicatedStorage:WaitForChild("Packages").knit)
 
 -- Apps
 local InventoryApp = require(ReplicatedStorage:WaitForChild("Source").Apps.Inventory)
+local ShopApp = require(ReplicatedStorage:WaitForChild("Source").Apps.Shop)
 
 -- Inventory app
 local inventoryHandle = nil
@@ -15,6 +16,14 @@ local inventoryHandle = nil
 local function CloseInventory()
 	Roact.unmount(inventoryHandle)
 	inventoryHandle = nil
+end
+
+-- Shop app
+local shopHandle = nil
+
+local function CloseShop()
+	Roact.unmount(shopHandle)
+	shopHandle = nil
 end
 
 -- Player
@@ -42,27 +51,60 @@ function Main:render()
 	return Roact.createElement("ScreenGui", {
 		ResetOnSpawn = false,
 	}, {
-		OpenInventory = Roact.createElement("ImageButton", {
+		Buttons = Roact.createElement("Frame", {
 			AnchorPoint = Vector2.new(0.5, 1),
 			Position = UDim2.new(0.5, 0, 1, -40),
-			Size = UDim2.fromOffset(50, 50),
-			BorderSizePixel = 0,
+			AutomaticSize = Enum.AutomaticSize.X,
+			Size = UDim2.fromOffset(0, 50),
 			BackgroundTransparency = 1,
-			Image = "rbxassetid://15447137400",
-			[Roact.Event.Activated] = function()
-				if inventoryHandle then
-					return CloseInventory()
-				end
+			BorderSizePixel = 0,
+		}, {
+			UIListLayout = Roact.createElement("UIListLayout", {
+				FillDirection = Enum.FillDirection.Horizontal,
+				Padding = UDim.new(0, 10),
+				HorizontalAlignment = Enum.HorizontalAlignment.Center,
+				VerticalAlignment = Enum.VerticalAlignment.Center,
+			}),
+			OpenInventory = Roact.createElement("ImageButton", {
+				Size = UDim2.fromOffset(50, 50),
+				BorderSizePixel = 0,
+				BackgroundTransparency = 1,
+				Image = "rbxassetid://15467904190",
+				[Roact.Event.Activated] = function()
+					if inventoryHandle then
+						return CloseInventory()
+					end
 
-				local element = Roact.createElement(InventoryApp, { onClose = CloseInventory })
-				inventoryHandle = Roact.mount(element, playerGui, "Inventory")
-			end,
-			[Roact.Event.MouseEnter] = function(button: ImageButton)
-				button.ImageColor3 = Color3.fromRGB(199, 199, 199)
-			end,
-			[Roact.Event.MouseLeave] = function(button: ImageButton)
-				button.ImageColor3 = Color3.fromRGB(255, 255, 255)
-			end,
+					local element = Roact.createElement(InventoryApp, { onClose = CloseInventory })
+					inventoryHandle = Roact.mount(element, playerGui, "Inventory")
+				end,
+				[Roact.Event.MouseEnter] = function(button: ImageButton)
+					button.ImageColor3 = Color3.fromRGB(199, 199, 199)
+				end,
+				[Roact.Event.MouseLeave] = function(button: ImageButton)
+					button.ImageColor3 = Color3.fromRGB(255, 255, 255)
+				end,
+			}),
+			OpenShop = Roact.createElement("ImageButton", {
+				Size = UDim2.fromOffset(50, 50),
+				BorderSizePixel = 0,
+				BackgroundTransparency = 1,
+				Image = "rbxassetid://15467853649",
+				[Roact.Event.Activated] = function()
+					if shopHandle then
+						return CloseShop()
+					end
+
+					local element = Roact.createElement(ShopApp, { onClose = CloseShop })
+					shopHandle = Roact.mount(element, playerGui, "Shop")
+				end,
+				[Roact.Event.MouseEnter] = function(button: ImageButton)
+					button.ImageColor3 = Color3.fromRGB(199, 199, 199)
+				end,
+				[Roact.Event.MouseLeave] = function(button: ImageButton)
+					button.ImageColor3 = Color3.fromRGB(255, 255, 255)
+				end,
+			}),
 		}),
 		FruitBucks = Roact.createElement("Frame", {
 			AnchorPoint = Vector2.new(0.5, 1),

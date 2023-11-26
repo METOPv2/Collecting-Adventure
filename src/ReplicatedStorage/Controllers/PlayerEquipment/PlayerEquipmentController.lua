@@ -10,10 +10,28 @@ local PlayerEquipmentController = Knit.CreateController({
 	Name = "PlayerEquipmentController",
 	EquippedBag = "",
 	BagEquipped = Signal.new(),
+	Initialized = Signal.new(),
+	Initializing = true,
 })
 
 function PlayerEquipmentController:KnitInit()
 	self.PlayerEquipmentService = Knit.GetService("PlayerEquipmentService")
+
+	self.PlayerEquipmentService
+		:GetBags()
+		:andThen(function(bags)
+			self.Bags = bags
+		end)
+		:catch(warn)
+		:await()
+
+	self.PlayerEquipmentService
+		:GetBagData()
+		:andThen(function(bagData)
+			self.BagData = bagData
+		end)
+		:catch(warn)
+		:await()
 
 	self.PlayerEquipmentService
 		:GetEquippedBag()
@@ -24,10 +42,17 @@ function PlayerEquipmentController:KnitInit()
 		:catch(warn)
 		:await()
 
+	self.PlayerEquipmentService.BagAdded:Connect(function(bags)
+		self.Bags = bags
+	end)
+
 	self.PlayerEquipmentService.BagEquipped:Connect(function(equippedBag: string)
 		self.EquippedBag = equippedBag
 		self.BagEquipped:Fire(equippedBag)
 	end)
+
+	self.Initializing = false
+	self.Initialized:Fire()
 end
 
 function PlayerEquipmentController:GetEquippedBag(): string
@@ -51,18 +76,32 @@ function PlayerEquipmentController:IsBagEquipped(bag: string): boolean
 	return self.EquippedBag == bag
 end
 
-function PlayerEquipmentController:GetBagData(bag: string): {}
-	assert(bag, "Bag is missing or nil.")
-	if not self.BagData[bag] then
-		self.PlayerEquipmentService
-			:GetBagData(bag)
-			:andThen(function(value)
-				self.BagData[bag] = value
-			end)
-			:catch(warn)
-			:await()
+function PlayerEquipmentController:GetBagData(bag: string?): {}
+	if self.Initializing then
+		self.Initialized:Wait()
 	end
-	return self.BagData[bag]
+
+	if bag then
+		return self.BagData[bag]
+	else
+		return self.BagData
+	end
+end
+
+function PlayerEquipmentController:DoOwnBag(bag: string): boolean
+	if self.Initializing then
+		self.Initialized:Wait()
+	end
+
+	return table.find(self.Bags, bag) ~= nil
+end
+
+function PlayerEquipmentController:GetBags()
+	if self.Initializing then
+		self.Initialized:Wait()
+	end
+
+	return self.Bags
 end
 
 return PlayerEquipmentController
