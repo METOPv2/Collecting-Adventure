@@ -14,6 +14,8 @@ local PlayerDataBase = DataStoreService:GetDataStore("PlayerData")
 export type PlayerData = {
 	Fruits: {},
 	Bags: {},
+	Xp: number,
+	Level: number,
 	EquippedBag: string,
 	FruitBucks: number,
 	Visits: number,
@@ -34,6 +36,8 @@ local PlayerDataService = Knit.CreateService({
 	Template = {
 		Fruits = {},
 		Bags = { "Pockets" },
+		Xp = 0,
+		Level = 0,
 		EquippedBag = "",
 		FruitBucks = 0,
 		Visits = 0,

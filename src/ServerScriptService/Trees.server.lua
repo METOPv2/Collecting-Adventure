@@ -10,6 +10,7 @@ local treesAssets: Folder = ReplicatedStorage.Assets.Trees
 local fruitsAssets: Folder = ReplicatedStorage.Assets.Fruits
 
 -- Data bases
+local TreesDataBase = require(ServerStorage.Source.DataBases.Trees)
 local FruitsDataBase = require(ServerStorage.Source.DataBases.Fruits)
 local BagsDataBase = require(ServerStorage.Source.DataBases.Bags)
 
@@ -22,20 +23,40 @@ type Fruit = {
 local function SpawnFruit(tree: Model, part: Part)
 	-- Services
 	local PlayerDataService = Knit.GetService("PlayerDataService")
+	local LevelService = Knit.GetService("LevelService")
 
 	-- New fruit model
 	local fruitData = assert(FruitsDataBase[tree.Name], `{tree.Name}'s data not found or doesn't exist.`)
+	local treeData = TreesDataBase[tree.Name]
 	local fruit: Model = fruitsAssets:FindFirstChild(tree.Name):Clone()
 	local size: Vector3 = fruit:GetExtentsSize()
-	fruit:PivotTo(
-		part.CFrame
-			* CFrame.new(
-				math.random(-40, 40) / 100 * (part.Size.X < part.Size.Z and part.Size.X or part.Size.Z),
-				-size.Y / 2 - part.Size.Y / 2,
-				math.random(-40, 40) / 100 * (part.Size.X > part.Size.Z and part.Size.X or part.Size.Z)
-			)
-			* CFrame.Angles(0, math.rad(math.random() * 360), 0)
-	)
+
+	if treeData.FruitsPositionType == "SameAsLog" then
+		fruit:PivotTo(part.CFrame)
+	else
+		fruit:PivotTo(
+			part.CFrame
+				* CFrame.new(
+					math.random(-40, 40) / 100 * (part.Size.X < part.Size.Z and part.Size.X or part.Size.Z),
+					-size.Y / 2 - part.Size.Y / 2,
+					math.random(-40, 40) / 100 * (part.Size.X > part.Size.Z and part.Size.X or part.Size.Z)
+				)
+		)
+	end
+
+	if treeData.FruitsRotationType == "360" then
+		fruit:PivotTo(
+			fruit:GetPivot()
+				* CFrame.Angles(
+					math.rad(math.random() * 360),
+					math.rad(math.random() * 360),
+					math.rad(math.random() * 360)
+				)
+		)
+	else
+		fruit:PivotTo(fruit:GetPivot() * CFrame.Angles(0, math.rad(math.random() * 360), 0))
+	end
+
 	fruit.Parent = part.Parent
 
 	-- Initialize proximity prompt
@@ -46,7 +67,7 @@ local function SpawnFruit(tree: Model, part: Part)
 	proximityPrompt.Triggered:Connect(function(playerWhoTriggered)
 		-- Checks
 		if
-			playerWhoTriggered:DistanceFromCharacter(fruit.PrimaryPart.Position)
+			playerWhoTriggered:DistanceFromCharacter(fruit:GetPivot().Position)
 			> proximityPrompt.MaxActivationDistance
 		then
 			return
@@ -59,23 +80,30 @@ local function SpawnFruit(tree: Model, part: Part)
 			return
 		end
 
+		if LevelService:GetLevel(playerWhoTriggered) < fruitData.Level then
+			return warn("Not enough level.")
+		end
+
 		-- New fruit
 		local newFruit: Fruit = {
 			Name = fruitData.Name,
 			Id = fruitData.Id,
 		}
 
+		LevelService:IncrementXp(playerWhoTriggered, fruitData.Xp)
 		PlayerDataService:InsertInTableAsync(playerWhoTriggered, "Fruits", newFruit)
 
 		-- Respawn fruit
 		fruit:Destroy()
 		task.delay(15, coroutine.wrap(SpawnFruit), tree, part)
 	end)
-	proximityPrompt.Parent = fruit.PrimaryPart
+	proximityPrompt.Parent = fruit
 end
 
 local function SpawnTree(treePart: Part)
 	-- New tree model
+	local treeData: TreesDataBase.DataBase =
+		assert(TreesDataBase[treePart.Name], `{treePart.Name}'s data doesn't exist.`)
 	local tree: Model = treesAssets:FindFirstChild(treePart.Name):Clone()
 	local size: Vector3 = tree:GetExtentsSize()
 	tree:PivotTo(
@@ -90,7 +118,9 @@ local function SpawnTree(treePart: Part)
 
 	-- Spawn fruits
 	for _, fruitPart: Part in ipairs(tree.Fruits:GetChildren()) do
-		coroutine.wrap(SpawnFruit)(tree, fruitPart)
+		for _ = 1, treeData.FruitsPerLog do
+			coroutine.wrap(SpawnFruit)(tree, fruitPart)
+		end
 	end
 end
 

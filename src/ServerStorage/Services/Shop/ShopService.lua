@@ -24,10 +24,10 @@ function ShopService:BuyBag(player: Player, bag: string)
 	assert(bag, "Bag is missing or nil.")
 	assert(BagsDataBase[bag], `{bag} bag doesn't exist.`)
 	if self.PlayerEquipmentService:DoOwnBag(player, bag) then
-		return warn("Aready own this bag.")
+		return
 	end
 	if self.PlayerDataService:GetAsync(player, "FruitBucks") < BagsDataBase[bag].Price then
-		return warn("Not enough fruit bucks.")
+		return
 	end
 	self.PlayerDataService:IncrementAsync(player, "FruitBucks", -BagsDataBase[bag].Price)
 	self.PlayerDataService:InsertInTableAsync(player, "Bags", bag)
