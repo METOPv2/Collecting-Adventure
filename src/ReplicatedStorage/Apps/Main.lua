@@ -35,9 +35,9 @@ local Main = Roact.Component:extend("Main")
 
 function Main:init()
 	self.PlayerDataController = Knit.GetController("PlayerDataController")
+	self.LevelController = Knit.GetController("LevelController")
 
 	self.fruitBucks, self.updateFruitBucks = Roact.createBinding(self.PlayerDataController:GetAsync("FruitBucks"))
-
 	self.PlayerDataController.DataChanged:Connect(function(key, value)
 		if key ~= "FruitBucks" then
 			return
@@ -45,6 +45,12 @@ function Main:init()
 
 		self.updateFruitBucks(value)
 	end)
+
+	self.level, self.updateLevel = Roact.createBinding(self.LevelController:GetLevel())
+	self.LevelController.LevelUp:Connect(self.updateLevel)
+
+	self.xp, self.updateXp = Roact.createBinding(self.LevelController:GetXp())
+	self.LevelController.XpChanged:Connect(self.updateXp)
 end
 
 function Main:render()
@@ -106,35 +112,116 @@ function Main:render()
 				end,
 			}),
 		}),
-		FruitBucks = Roact.createElement("Frame", {
+		Panel = Roact.createElement("Frame", {
 			AnchorPoint = Vector2.new(0.5, 1),
 			Position = UDim2.fromScale(0.5, 1),
-			Size = UDim2.fromOffset(200, 30),
+			Size = UDim2.fromOffset(250, 30),
 			BorderSizePixel = 0,
 			BackgroundColor3 = Color3.fromRGB(41, 41, 41),
 		}, {
 			UICorner = Roact.createElement("UICorner", {
 				CornerRadius = UDim.new(0, 5),
 			}),
-			Frame = Roact.createElement("Frame", {
-				AnchorPoint = Vector2.new(0, 1),
-				Position = UDim2.fromScale(0, 1),
+			Line = Roact.createElement("Frame", {
+				Position = UDim2.fromScale(0.5, 0),
+				Size = UDim2.new(0, 1, 1, 0),
+				BorderSizePixel = 0,
+				BackgroundColor3 = Color3.fromRGB(87, 87, 87),
+				ZIndex = 2,
+			}),
+			Fill = Roact.createElement("Frame", {
 				Size = UDim2.fromScale(1, 0.5),
+				Position = UDim2.fromScale(0, 1),
+				AnchorPoint = Vector2.new(0, 1),
 				BorderSizePixel = 0,
 				BackgroundColor3 = Color3.fromRGB(41, 41, 41),
 			}),
-			TextLabel = Roact.createElement("TextLabel", {
-				Size = UDim2.fromScale(1, 1),
-				BackgroundTransparency = 1,
+			FruitBucks = Roact.createElement("Frame", {
+				Size = UDim2.fromScale(0.5, 1),
 				BorderSizePixel = 0,
-				RichText = true,
-				Text = self.fruitBucks:map(function(value)
-					return `<b>Fruit Bucks: <font size="18">{value}</font></b>`
-				end),
-				TextSize = 14,
-				TextColor3 = Color3.fromRGB(255, 255, 255),
-				Font = Enum.Font.Ubuntu,
-				ZIndex = 2,
+				BackgroundTransparency = 1,
+			}, {
+				TextLabel = Roact.createElement("TextLabel", {
+					Size = UDim2.fromScale(1, 1),
+					BackgroundTransparency = 1,
+					BorderSizePixel = 0,
+					RichText = true,
+					Text = self.fruitBucks:map(function(value)
+						return `Fruit Bucks: <b><font size="18">{value}</font></b>`
+					end),
+					TextSize = 14,
+					TextColor3 = Color3.fromRGB(255, 255, 255),
+					Font = Enum.Font.Ubuntu,
+					TextXAlignment = Enum.TextXAlignment.Left,
+					ZIndex = 3,
+				}, {
+					UIPadding = Roact.createElement("UIPadding", {
+						PaddingLeft = UDim.new(0, 8),
+					}),
+				}),
+				Button = Roact.createElement("TextButton", {
+					Size = UDim2.fromScale(1, 1),
+					BorderSizePixel = 0,
+					BackgroundTransparency = 1,
+					Text = "",
+					[Roact.Event.Activated] = function()
+						if shopHandle then
+							return CloseShop()
+						end
+
+						local element =
+							Roact.createElement(ShopApp, { starterPage = "Fruit Bucks", onClose = CloseShop })
+						shopHandle = Roact.mount(element, playerGui, "Shop")
+					end,
+				}),
+			}),
+			Level = Roact.createElement("Frame", {
+				Size = UDim2.fromScale(0.5, 1),
+				Position = UDim2.fromScale(0.5, 0),
+				BorderSizePixel = 0,
+				BackgroundTransparency = 1,
+			}, {
+				TextLabel = Roact.createElement("TextLabel", {
+					Size = UDim2.fromScale(1, 1),
+					BackgroundTransparency = 1,
+					BorderSizePixel = 0,
+					RichText = true,
+					Text = self.level:map(function(value)
+						return `Level: <b><font size="18">{value}</font></b>`
+					end),
+					TextSize = 14,
+					TextColor3 = Color3.fromRGB(255, 255, 255),
+					Font = Enum.Font.Ubuntu,
+					TextXAlignment = Enum.TextXAlignment.Left,
+					ZIndex = 3,
+				}, {
+					UIPadding = Roact.createElement("UIPadding", {
+						PaddingLeft = UDim.new(0, 8),
+					}),
+				}),
+				Progress = Roact.createElement("Frame", {
+					AnchorPoint = Vector2.new(0, 1),
+					Position = UDim2.fromScale(0, 1),
+					Size = UDim2.new(1, 0, 0, 2),
+					BorderSizePixel = 0,
+					BackgroundColor3 = Color3.fromRGB(167, 167, 167),
+					ZIndex = 3,
+					Visible = self.xp:map(function(xp)
+						return xp ~= 0
+					end),
+				}, {
+					Line = Roact.createElement("Frame", {
+						BorderSizePixel = 0,
+						BackgroundColor3 = Color3.fromRGB(62, 184, 236),
+						Size = self.xp:map(function(xp)
+							return UDim2.fromScale(
+								math.min(1, xp / self.LevelController:CalculateXpGoal(self.level:getValue())),
+								1
+							)
+						end),
+						ZIndex = 4,
+					}),
+				}),
 			}),
 		}),
 	})
