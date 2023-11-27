@@ -13,4 +13,10 @@ for _, v in ipairs(controllers:GetDescendants()) do
 end
 
 -- Start knit on client
-Knit.Start():catch(warn)
+Knit.Start()
+	:andThen(function()
+		local GUIController = Knit.GetController("GUIController")
+
+		GUIController:OpenGUI("Main", nil, { DontStoreInHistory = true, DontCloseIfAlreadyOpen = true })
+	end)
+	:catch(warn)

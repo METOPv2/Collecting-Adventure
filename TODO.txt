@@ -1,0 +1,11 @@
+notifications
+sfx
+settings
+quests
+tutorial
+update log
+daily rewards
+starter pack
+teleport
+translation
+map improvements

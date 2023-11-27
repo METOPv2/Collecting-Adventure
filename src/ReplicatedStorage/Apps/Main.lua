@@ -10,22 +10,6 @@ local Knit = require(ReplicatedStorage:WaitForChild("Packages").knit)
 local InventoryApp = require(ReplicatedStorage:WaitForChild("Source").Apps.Inventory)
 local ShopApp = require(ReplicatedStorage:WaitForChild("Source").Apps.Shop)
 
--- Inventory app
-local inventoryHandle = nil
-
-local function CloseInventory()
-	Roact.unmount(inventoryHandle)
-	inventoryHandle = nil
-end
-
--- Shop app
-local shopHandle = nil
-
-local function CloseShop()
-	Roact.unmount(shopHandle)
-	shopHandle = nil
-end
-
 -- Player
 local localPlayer = Players.LocalPlayer
 local playerGui = localPlayer:WaitForChild("PlayerGui")
@@ -36,6 +20,7 @@ local Main = Roact.Component:extend("Main")
 function Main:init()
 	self.PlayerDataController = Knit.GetController("PlayerDataController")
 	self.LevelController = Knit.GetController("LevelController")
+	self.GUIController = Knit.GetController("GUIController")
 
 	self.fruitBucks, self.updateFruitBucks = Roact.createBinding(self.PlayerDataController:GetAsync("FruitBucks"))
 	self.PlayerDataController.DataChanged:Connect(function(key, value)
@@ -77,12 +62,12 @@ function Main:render()
 				BackgroundTransparency = 1,
 				Image = "rbxassetid://15467904190",
 				[Roact.Event.Activated] = function()
-					if inventoryHandle then
-						return CloseInventory()
-					end
-
-					local element = Roact.createElement(InventoryApp, { onClose = CloseInventory })
-					inventoryHandle = Roact.mount(element, playerGui, "Inventory")
+					local tree = nil
+					tree = self.GUIController:OpenGUI("Inventory", {
+						onClose = function()
+							self.GUIController:CloseGUI(tree)
+						end,
+					})
 				end,
 				[Roact.Event.MouseEnter] = function(button: ImageButton)
 					button.ImageColor3 = Color3.fromRGB(199, 199, 199)
@@ -97,12 +82,12 @@ function Main:render()
 				BackgroundTransparency = 1,
 				Image = "rbxassetid://15467853649",
 				[Roact.Event.Activated] = function()
-					if shopHandle then
-						return CloseShop()
-					end
-
-					local element = Roact.createElement(ShopApp, { onClose = CloseShop })
-					shopHandle = Roact.mount(element, playerGui, "Shop")
+					local tree = nil
+					tree = self.GUIController:OpenGUI("Shop", {
+						onClose = function()
+							self.GUIController:CloseGUI(tree)
+						end,
+					})
 				end,
 				[Roact.Event.MouseEnter] = function(button: ImageButton)
 					button.ImageColor3 = Color3.fromRGB(199, 199, 199)
@@ -165,13 +150,13 @@ function Main:render()
 					BackgroundTransparency = 1,
 					Text = "",
 					[Roact.Event.Activated] = function()
-						if shopHandle then
-							return CloseShop()
-						end
-
-						local element =
-							Roact.createElement(ShopApp, { starterPage = "Fruit Bucks", onClose = CloseShop })
-						shopHandle = Roact.mount(element, playerGui, "Shop")
+						local tree = nil
+						tree = self.GUIController:OpenGUI("Shop", {
+							onClose = function()
+								self.GUIController:CloseGUI(tree)
+							end,
+							starterPage = "Fruit Bucks",
+						})
 					end,
 				}),
 			}),

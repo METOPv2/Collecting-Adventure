@@ -256,8 +256,9 @@ end
 
 function Inventory:render()
 	local onClose = self.props.onClose
+	local starterPage = self.props.starterPage or "Fruits"
 
-	local currentTab, updateCurrentTab = Roact.createBinding("Fruits")
+	local currentTab, updateCurrentTab = Roact.createBinding(starterPage)
 
 	return Roact.createElement("ScreenGui", {
 		ResetOnSpawn = false,
