@@ -15,7 +15,7 @@ local playerGui = localPlayer:WaitForChild("PlayerGui")
 
 -- Types
 type Options = {
-	StoreInHistory: boolean,
+	DontStoreInHistory: boolean,
 	DontCloseIfAlreadyOpen: boolean,
 }
 

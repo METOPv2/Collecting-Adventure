@@ -27,15 +27,25 @@ local function Touched(otherPart)
 	end
 	sellDebounce[playerId] = true
 
+	local NotificationsService = Knit.GetService("NotificationsService")
 	local PlayerDataService = Knit.GetService("PlayerDataService")
 	local Fruits = PlayerDataService:GetAsync(player, "Fruits")
 
 	if #Fruits ~= 0 then
+		local fruitBucks, fruits = 0, 0
 		for _, fruit in pairs(Fruits) do
 			local fruitData = FruitsDataBase[fruit.Id]
-			PlayerDataService:IncrementAsync(player, "FruitBucks", fruitData.SellValue)
 			PlayerDataService:RemoveAsync(player, "Fruits", fruit)
+			PlayerDataService:IncrementAsync(player, "FruitBucks", fruitData.SellValue)
+			fruitBucks += fruitData.SellValue
+			fruits += 1
 		end
+		NotificationsService:new(player, {
+			text = `You earned {fruitBucks} fruit bucks for selling {fruits} fruit{fruits > 1 and "s" or ""}.`,
+			title = "Fruits Sold",
+			duration = 10,
+			type = "sell",
+		})
 	end
 
 	sellDebounce[playerId] = nil

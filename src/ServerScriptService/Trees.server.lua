@@ -24,6 +24,7 @@ local function SpawnFruit(tree: Model, part: Part)
 	-- Services
 	local PlayerDataService = Knit.GetService("PlayerDataService")
 	local LevelService = Knit.GetService("LevelService")
+	local NotificationsService = Knit.GetService("NotificationsService")
 
 	-- New fruit model
 	local fruitData = assert(FruitsDataBase[tree.Name], `{tree.Name}'s data not found or doesn't exist.`)
@@ -70,18 +71,45 @@ local function SpawnFruit(tree: Model, part: Part)
 			playerWhoTriggered:DistanceFromCharacter(fruit:GetPivot().Position)
 			> proximityPrompt.MaxActivationDistance
 		then
-			return
+			return NotificationsService:new(playerWhoTriggered, {
+				text = "Come closer to fruit in order to be able to harvest it.",
+				title = "You're too far from the fruit",
+				duration = 5,
+				type = "info",
+			})
 		end
 
 		local playerFruits = PlayerDataService:GetAsync(playerWhoTriggered, "Fruits")
 		local playerBag = PlayerDataService:GetAsync(playerWhoTriggered, "EquippedBag")
 		local bagData = BagsDataBase[playerBag]
+
+		if playerBag == "" then
+			return NotificationsService:new(playerWhoTriggered, {
+				text = "You are unable to harvest fruits without an equipped bag. Consider equipping it from your inventory.",
+				title = "No bag is equipped",
+				duration = 15,
+				type = "warn",
+			})
+		end
+
 		if playerBag == "" or #playerFruits + 1 > bagData.MaxFruits then
-			return
+			return NotificationsService:new(playerWhoTriggered, {
+				text = "Sell your current fruits to have more capacity in your bag.",
+				title = "Max fruits reached",
+				duration = 15,
+				type = "warn",
+			})
 		end
 
 		if LevelService:GetLevel(playerWhoTriggered) < fruitData.Level then
-			return warn("Not enough level.")
+			return NotificationsService:new(playerWhoTriggered, {
+				text = `Your current level is {LevelService:GetLevel(playerWhoTriggered)}, and you can't harvest fruit which requires {fruitData.Level - LevelService:GetLevel(
+					playerWhoTriggered
+				)} more level{fruitData.Level > 1 and "s" or ""}.`,
+				title = "Level is too high",
+				duration = 15,
+				type = "warn",
+			})
 		end
 
 		-- New fruit
