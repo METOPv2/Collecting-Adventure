@@ -18,6 +18,9 @@ local colorTypes = {
 	["sell"] = {
 		accent = Color3.fromRGB(49, 201, 62),
 	},
+	["levelUp"] = {
+		accent = Color3.fromRGB(182, 66, 245),
+	},
 }
 
 -- Notification component

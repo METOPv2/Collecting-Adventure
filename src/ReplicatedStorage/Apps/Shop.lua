@@ -32,6 +32,8 @@ local fruitBucksProducts = {
 local WindowComponent = require(ReplicatedStorage:WaitForChild("Source").Components.Window)
 
 local function Tab(props)
+	local SFXController = Knit.GetController("SFXController")
+
 	local text = props.text
 	local activeTab = props.activeTab
 	local changeActiveTab = props.changeActiveTab
@@ -69,6 +71,9 @@ local function Tab(props)
 			Font = Enum.Font.Ubuntu,
 			[Roact.Event.Activated] = function()
 				changeActiveTab(text)
+			end,
+			[Roact.Event.MouseEnter] = function()
+				SFXController:PlaySFX("MouseEnter")
 			end,
 			TextXAlignment = Enum.TextXAlignment.Left,
 		}, {
@@ -140,6 +145,7 @@ end
 local function Bag(props)
 	local ShopController = Knit.GetController("ShopController")
 	local PlayerEquipmentController = Knit.GetController("PlayerEquipmentController")
+	local SFXController = Knit.GetController("SFXController")
 
 	local bag = props.bag
 	local model: Model = bagsAssets:FindFirstChild(bag.Id):Clone()
@@ -170,6 +176,7 @@ local function Bag(props)
 			end,
 			[Roact.Event.MouseEnter] = function()
 				updateHover(true)
+				SFXController:PlaySFX("MouseEnter")
 			end,
 			[Roact.Event.MouseLeave] = function()
 				updateHover(false)
@@ -273,7 +280,9 @@ local function Bags()
 end
 
 local function FruitBucksProduct(props)
+	local SFXController = Knit.GetController("SFXController")
 	local MonetizationController = Knit.GetController("MonetizationController")
+
 	local product = props.product
 
 	return Roact.createElement("Frame", {
@@ -295,6 +304,9 @@ local function FruitBucksProduct(props)
 			ZIndex = 2,
 			[Roact.Event.Activated] = function()
 				MonetizationController:BuyProduct(product.ProductId)
+			end,
+			[Roact.Event.MouseEnter] = function()
+				SFXController:PlaySFX("MouseEnter")
 			end,
 		}),
 		Amount = Roact.createElement("TextLabel", {

@@ -18,6 +18,7 @@ local playerGui = localPlayer:WaitForChild("PlayerGui")
 local Main = Roact.Component:extend("Main")
 
 function Main:init()
+	self.SFXController = Knit.GetController("SFXController")
 	self.PlayerDataController = Knit.GetController("PlayerDataController")
 	self.LevelController = Knit.GetController("LevelController")
 	self.GUIController = Knit.GetController("GUIController")
@@ -70,6 +71,7 @@ function Main:render()
 					})
 				end,
 				[Roact.Event.MouseEnter] = function(button: ImageButton)
+					self.SFXController:PlaySFX("MouseEnter")
 					button.ImageColor3 = Color3.fromRGB(199, 199, 199)
 				end,
 				[Roact.Event.MouseLeave] = function(button: ImageButton)
@@ -90,6 +92,28 @@ function Main:render()
 					})
 				end,
 				[Roact.Event.MouseEnter] = function(button: ImageButton)
+					self.SFXController:PlaySFX("MouseEnter")
+					button.ImageColor3 = Color3.fromRGB(199, 199, 199)
+				end,
+				[Roact.Event.MouseLeave] = function(button: ImageButton)
+					button.ImageColor3 = Color3.fromRGB(255, 255, 255)
+				end,
+			}),
+			OpenSettings = Roact.createElement("ImageButton", {
+				Size = UDim2.fromOffset(50, 50),
+				BorderSizePixel = 0,
+				BackgroundTransparency = 1,
+				Image = "rbxassetid://15496776350",
+				[Roact.Event.Activated] = function()
+					local tree = nil
+					tree = self.GUIController:OpenGUI("Settings", {
+						onClose = function()
+							self.GUIController:CloseGUI(tree)
+						end,
+					})
+				end,
+				[Roact.Event.MouseEnter] = function(button: ImageButton)
+					self.SFXController:PlaySFX("MouseEnter")
 					button.ImageColor3 = Color3.fromRGB(199, 199, 199)
 				end,
 				[Roact.Event.MouseLeave] = function(button: ImageButton)
@@ -157,6 +181,9 @@ function Main:render()
 							end,
 							starterPage = "Fruit Bucks",
 						})
+					end,
+					[Roact.Event.MouseEnter] = function()
+						self.SFXController:PlaySFX("MouseEnter")
 					end,
 				}),
 			}),

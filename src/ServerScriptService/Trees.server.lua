@@ -25,6 +25,7 @@ local function SpawnFruit(tree: Model, part: Part)
 	local PlayerDataService = Knit.GetService("PlayerDataService")
 	local LevelService = Knit.GetService("LevelService")
 	local NotificationsService = Knit.GetService("NotificationsService")
+	local SFXService = Knit.GetService("SFXService")
 
 	-- New fruit model
 	local fruitData = assert(FruitsDataBase[tree.Name], `{tree.Name}'s data not found or doesn't exist.`)
@@ -75,7 +76,7 @@ local function SpawnFruit(tree: Model, part: Part)
 				text = "Come closer to fruit in order to be able to harvest it.",
 				title = "You're too far from the fruit",
 				duration = 5,
-				type = "info",
+				type = "warn",
 			})
 		end
 
@@ -120,6 +121,9 @@ local function SpawnFruit(tree: Model, part: Part)
 
 		LevelService:IncrementXp(playerWhoTriggered, fruitData.Xp)
 		PlayerDataService:InsertInTableAsync(playerWhoTriggered, "Fruits", newFruit)
+
+		-- Play SFX
+		SFXService:PlayLocalSFX(playerWhoTriggered, "Pop")
 
 		-- Respawn fruit
 		fruit:Destroy()

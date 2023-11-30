@@ -13,6 +13,7 @@ local LevelController = Knit.CreateController({
 
 function LevelController:KnitInit()
 	self.LevelService = Knit.GetService("LevelService")
+	self.NotificationsController = Knit.GetController("NotificationsController")
 
 	self.LevelService
 		:GetXp()
@@ -30,9 +31,16 @@ function LevelController:KnitInit()
 		:catch(warn)
 		:await()
 
-	self.LevelService.LevelUp:Connect(function(level)
-		self.Level = level
-		self.LevelUp:Fire(level)
+	self.LevelService.LevelUp:Connect(function(newLevel)
+		local oldLevel = self:GetLevel()
+		self.Level = newLevel
+		self.LevelUp:Fire(newLevel)
+		self.NotificationsController:new({
+			text = `You level upped from level {oldLevel} to {newLevel}. Congrats! :)`,
+			title = "Level Up",
+			duration = 15,
+			type = "levelUp",
+		})
 	end)
 
 	self.LevelService.XpChanged:Connect(function(xp)

@@ -3,9 +3,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Packages
 local Roact = require(ReplicatedStorage:WaitForChild("Packages").roact)
+local Knit = require(ReplicatedStorage:WaitForChild("Packages").knit)
 
 -- Window component
 local function Window(props)
+	local SFXController = Knit.GetController("SFXController")
+
 	local size = props.size
 	local title = props.title
 	local onClose = props.onClose
@@ -62,6 +65,7 @@ local function Window(props)
 				[Roact.Event.Activated] = onClose,
 				[Roact.Event.MouseEnter] = function(button: ImageButton)
 					button.ImageColor3 = Color3.fromRGB(199, 199, 199)
+					SFXController:PlaySFX("MouseEnter")
 				end,
 				[Roact.Event.MouseLeave] = function(button: ImageButton)
 					button.ImageColor3 = Color3.fromRGB(255, 255, 255)

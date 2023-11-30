@@ -21,6 +21,11 @@ export type PlayerData = {
 	Visits: number,
 	FirstJoin: number,
 	LeaveTime: number,
+	NotificationsEnabled: boolean,
+	MusicEnabled: boolean,
+	SFXEnabled: boolean,
+	MusicVolume: number,
+	SFXVolume: number,
 }
 
 export type DataOptions = {
@@ -32,7 +37,13 @@ local PlayerDataService = Knit.CreateService({
 	Name = "PlayerDataService",
 	SessionDataBase = {},
 	BlockedDataForClient = {},
-	AllowedDataFromClient = {},
+	AllowedDataChangesFromClient = {
+		"NotificationsEnabled",
+		"MusicEnabled",
+		"SFXEnabled",
+		"MusicVolume",
+		"SFXVolume",
+	},
 	Template = {
 		Fruits = {},
 		Bags = { "Pockets" },
@@ -43,6 +54,11 @@ local PlayerDataService = Knit.CreateService({
 		Visits = 0,
 		FirstJoin = workspace:GetServerTimeNow(),
 		LeaveTime = 0,
+		NotificationsEnabled = true,
+		MusicEnabled = true,
+		SFXEnabled = true,
+		MusicVolume = 0.5,
+		SFXVolume = 0.5,
 	},
 	Client = {
 		DataChanged = Knit.CreateSignal(),
@@ -229,7 +245,7 @@ end
 
 function PlayerDataService.Client:SetAsync(player: Player, key: any, value: any)
 	assert(
-		table.find(self.Server.AllowedDataFromClient, key),
+		table.find(self.Server.AllowedDataChangesFromClient, key),
 		`{player.Name} have no access to save data in "{key}" key.`
 	)
 
@@ -267,7 +283,7 @@ end
 
 function PlayerDataService.Client:IncrementAsync(player: Player, key: any, value: number)
 	assert(
-		table.find(self.Server.AllowedDataFromClient, key),
+		table.find(self.Server.AllowedDataChangesFromClient, key),
 		`{player.Name} have no access to save data in "{key}" key.`
 	)
 
@@ -309,7 +325,10 @@ function PlayerDataService:InsertInTableAsync(
 end
 
 function PlayerDataService.Client:InsertInTableAsync(player: Player, key: any, value: any)
-	assert(table.find(self.Server.AllowedDataFromClient, key), `{player.Name} have no access to save data in {key}.`)
+	assert(
+		table.find(self.Server.AllowedDataChangesFromClient, key),
+		`{player.Name} have no access to save data in {key}.`
+	)
 
 	self.Server:InsertInTableAsync(player, key, value)
 end
@@ -374,7 +393,10 @@ function PlayerDataService:RemoveAsync(player: Player, key: any, value: any?, op
 end
 
 function PlayerDataService.Client:RemoveAsync(player: Player, key: any, value: any)
-	assert(table.find(self.Server.AllowedDataFromClient, key), `{player.Name} have no access to save data in {key}.`)
+	assert(
+		table.find(self.Server.AllowedDataChangesFromClient, key),
+		`{player.Name} have no access to save data in {key}.`
+	)
 
 	self.Server:RemoveAsync(player, key, value)
 end

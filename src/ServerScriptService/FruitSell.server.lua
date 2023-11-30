@@ -27,6 +27,7 @@ local function Touched(otherPart)
 	end
 	sellDebounce[playerId] = true
 
+	local SFXService = Knit.GetService("SFXService")
 	local NotificationsService = Knit.GetService("NotificationsService")
 	local PlayerDataService = Knit.GetService("PlayerDataService")
 	local Fruits = PlayerDataService:GetAsync(player, "Fruits")
@@ -46,6 +47,7 @@ local function Touched(otherPart)
 			duration = 10,
 			type = "sell",
 		})
+		SFXService:PlayLocalSFX(player, "CashRegister")
 	end
 
 	sellDebounce[playerId] = nil

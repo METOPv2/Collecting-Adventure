@@ -60,6 +60,8 @@ local function Fruits(props)
 end
 
 local function Tab(props)
+	local SFXController = Knit.GetController("SFXController")
+
 	local text = props.text
 	local active = props.active
 	local changeActive = props.changeActive
@@ -89,6 +91,9 @@ local function Tab(props)
 			Font = Enum.Font.Ubuntu,
 			[Roact.Event.Activated] = function()
 				changeActive(text)
+			end,
+			[Roact.Event.MouseEnter] = function()
+				SFXController:PlaySFX("MouseEnter")
 			end,
 			TextXAlignment = Enum.TextXAlignment.Left,
 		}, {
@@ -120,6 +125,7 @@ local function Tabs(props)
 end
 
 local function Bag(props)
+	local SFXController = Knit.GetController("SFXController")
 	local PlayerEquipmentController = Knit.GetController("PlayerEquipmentController")
 
 	local bag = props.bag
@@ -153,6 +159,9 @@ local function Bag(props)
 				local isEquipped: boolean = PlayerEquipmentController:IsBagEquipped(bag)
 				PlayerEquipmentController:EquipBag(isEquipped and "" or bag)
 				updateEquip(isEquipped and "" or bag)
+			end,
+			[Roact.Event.MouseEnter] = function()
+				SFXController:PlaySFX("MouseEnter")
 			end,
 		}),
 		ViewportFrame = Roact.createElement("ViewportFrame", {

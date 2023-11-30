@@ -25,6 +25,10 @@ local GUIController = Knit.CreateController({
 	CurrentGUI = nil,
 })
 
+function GUIController:KnitInit()
+	self.SFXController = Knit.GetController("SFXController")
+end
+
 function GUIController:OpenGUI(name: string, props: {}?, options: Options?): Roact.Tree
 	assert(name, "Name is missing or nil.")
 	assert(typeof(name) == "string", `Name must be string. Got {typeof(name)}.`)
@@ -40,6 +44,10 @@ function GUIController:OpenGUI(name: string, props: {}?, options: Options?): Roa
 			Roact.unmount(self.CurrentGUI.tree)
 			self.CurrentGUI = nil
 		end
+	end
+
+	if name == "Inventory" or name == "Shop" then
+		self.SFXController:PlaySFX("UIOpen")
 	end
 
 	local tree = Roact.mount(Roact.createElement(require(apps[name]), props), playerGui, name)

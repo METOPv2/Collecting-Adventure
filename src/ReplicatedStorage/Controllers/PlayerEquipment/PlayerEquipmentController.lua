@@ -16,6 +16,7 @@ local PlayerEquipmentController = Knit.CreateController({
 
 function PlayerEquipmentController:KnitInit()
 	self.PlayerEquipmentService = Knit.GetService("PlayerEquipmentService")
+	self.SFXController = Knit.GetController("SFXController")
 
 	self.PlayerEquipmentService
 		:GetBags()
@@ -49,6 +50,11 @@ function PlayerEquipmentController:KnitInit()
 	self.PlayerEquipmentService.BagEquipped:Connect(function(equippedBag: string)
 		self.EquippedBag = equippedBag
 		self.BagEquipped:Fire(equippedBag)
+		if equippedBag ~= "" then
+			self.SFXController:PlaySFX("Equip")
+		else
+			self.SFXController:PlaySFX("Unequip")
+		end
 	end)
 
 	self.Initializing = false

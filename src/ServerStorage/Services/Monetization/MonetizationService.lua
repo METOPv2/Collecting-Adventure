@@ -12,6 +12,7 @@ local MonetizationService = Knit.CreateService({
 })
 
 function MonetizationService:KnitInit()
+	self.SFXService = Knit.GetService("SFXService")
 	self.PlayerDataService = Knit.GetService("PlayerDataService")
 
 	self.Functions = {
@@ -21,6 +22,7 @@ function MonetizationService:KnitInit()
 				return Enum.ProductPurchaseDecision.NotProcessedYet
 			end
 			self.PlayerDataService:IncrementAsync(player, "FruitBucks", 5)
+			self.SFXService:PlayLocalSFX(player, "CashRegister")
 			return Enum.ProductPurchaseDecision.PurchaseGranted
 		end,
 		[1694976191] = function(reciept)
@@ -29,6 +31,7 @@ function MonetizationService:KnitInit()
 				return Enum.ProductPurchaseDecision.NotProcessedYet
 			end
 			self.PlayerDataService:IncrementAsync(player, "FruitBucks", 25)
+			self.SFXService:PlayLocalSFX(player, "CashRegister")
 			return Enum.ProductPurchaseDecision.PurchaseGranted
 		end,
 		[1694976188] = function(reciept)
@@ -37,6 +40,7 @@ function MonetizationService:KnitInit()
 				return Enum.ProductPurchaseDecision.NotProcessedYet
 			end
 			self.PlayerDataService:IncrementAsync(player, "FruitBucks", 50)
+			self.SFXService:PlayLocalSFX(player, "CashRegister")
 			return Enum.ProductPurchaseDecision.PurchaseGranted
 		end,
 		[1694976190] = function(reciept)
@@ -45,6 +49,7 @@ function MonetizationService:KnitInit()
 				return Enum.ProductPurchaseDecision.NotProcessedYet
 			end
 			self.PlayerDataService:IncrementAsync(player, "FruitBucks", 100)
+			self.SFXService:PlayLocalSFX(player, "CashRegister")
 			return Enum.ProductPurchaseDecision.PurchaseGranted
 		end,
 	}

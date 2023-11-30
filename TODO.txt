@@ -1,6 +1,3 @@
-notifications
-sfx
-settings
 quests
 tutorial
 update log
