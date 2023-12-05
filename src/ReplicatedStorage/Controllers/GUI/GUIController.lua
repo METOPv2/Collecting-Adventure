@@ -17,43 +17,73 @@ local playerGui = localPlayer:WaitForChild("PlayerGui")
 type Options = {
 	DontStoreInHistory: boolean,
 	DontCloseIfAlreadyOpen: boolean,
+	CloseItSelf: boolean,
 }
 
--- GUI controller
-local GUIController = Knit.CreateController({
-	Name = "GUIController",
-	CurrentGUI = nil,
+-- Gui controller
+local GuiController = Knit.CreateController({
+	Name = "GuiController",
+	PlayOpenSoundForTheseGuis = {
+		"Inventory",
+		"Shop",
+		"Settings",
+		"Tutorial",
+		"Feedback",
+	},
 })
 
-function GUIController:KnitInit()
+function GuiController:KnitInit()
+	self.PlayerDataController = Knit.GetController("PlayerDataController")
 	self.SFXController = Knit.GetController("SFXController")
+	self.GuiService = Knit.GetService("GuiService")
+
+	self.GuiService.OpenGui:Connect(function(gui: string, props: {}?, options: Options?)
+		self:OpenGui(gui, props, options)
+	end)
+
+	self.GuiService.CloseGui:Connect(function(gui: string)
+		self:Close(gui)
+	end)
 end
 
-function GUIController:OpenGUI(name: string, props: {}?, options: Options?): Roact.Tree
+function GuiController:KnitStart()
+	self:OpenGui("Main", nil, { DontStoreInHistory = true, DontCloseIfAlreadyOpen = true })
+end
+
+function GuiController:OpenGui(name: string, props: {}?, options: Options?): Roact.Tree
 	assert(name, "Name is missing or nil.")
 	assert(typeof(name) == "string", `Name must be string. Got {typeof(name)}.`)
 
-	if self.CurrentGUI then
-		if self.CurrentGUI.name == name then
+	if self.CurrentGui then
+		if self.CurrentGui.name == name then
 			if not options or not options.DontCloseIfAlreadyOpen then
-				Roact.unmount(self.CurrentGUI.tree)
-				self.CurrentGUI = nil
+				Roact.unmount(self.CurrentGui.tree)
+				self.CurrentGui = nil
 				return
 			end
 		else
-			Roact.unmount(self.CurrentGUI.tree)
-			self.CurrentGUI = nil
+			Roact.unmount(self.CurrentGui.tree)
+			self.CurrentGui = nil
 		end
 	end
 
-	if name == "Inventory" or name == "Shop" then
+	if table.find(self.PlayOpenSoundForTheseGuis, name) then
 		self.SFXController:PlaySFX("UIOpen")
 	end
 
-	local tree = Roact.mount(Roact.createElement(require(apps[name]), props), playerGui, name)
+	local tree
+
+	if options and options.CloseItSelf then
+		props = props or {}
+		props.onClose = function()
+			self:CloseGui(tree)
+		end
+	end
+
+	tree = Roact.mount(Roact.createElement(require(apps[name]), props), playerGui, name)
 
 	if not options or not options.DontStoreInHistory then
-		self.CurrentGUI = {
+		self.CurrentGui = {
 			tree = tree,
 			name = name,
 		}
@@ -62,24 +92,24 @@ function GUIController:OpenGUI(name: string, props: {}?, options: Options?): Roa
 	return tree
 end
 
-function GUIController:GetCurrentGUI(): { name: string, tree: Roact.Tree }?
-	return self.CurrentGUI
+function GuiController:GetCurrentGui(): { name: string, tree: Roact.Tree }?
+	return self.CurrentGui
 end
 
-function GUIController:CloseCurrentGUI()
-	if self.CurrentGUI then
-		self:CloseGUI(self.CurrentGUI)
+function GuiController:CloseCurrentGui()
+	if self.CurrentGui then
+		self:CloseGui(self.CurrentGui)
 	end
 end
 
-function GUIController:CloseGUI(tree: Roact.Tree)
+function GuiController:CloseGui(tree: Roact.Tree)
 	assert(tree, "Tree is missing or nil.")
 
-	if self.CurrentGUI.tree == tree then
-		self.CurrentGUI = nil
+	if self.CurrentGui and self.CurrentGui.tree == tree then
+		self.CurrentGui = nil
 	end
 
 	Roact.unmount(tree)
 end
 
-return GUIController
+return GuiController

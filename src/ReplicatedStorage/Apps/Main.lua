@@ -21,7 +21,7 @@ function Main:init()
 	self.SFXController = Knit.GetController("SFXController")
 	self.PlayerDataController = Knit.GetController("PlayerDataController")
 	self.LevelController = Knit.GetController("LevelController")
-	self.GUIController = Knit.GetController("GUIController")
+	self.GuiController = Knit.GetController("GuiController")
 
 	self.fruitBucks, self.updateFruitBucks = Roact.createBinding(self.PlayerDataController:GetAsync("FruitBucks"))
 	self.PlayerDataController.DataChanged:Connect(function(key, value)
@@ -63,12 +63,7 @@ function Main:render()
 				BackgroundTransparency = 1,
 				Image = "rbxassetid://15467904190",
 				[Roact.Event.Activated] = function()
-					local tree = nil
-					tree = self.GUIController:OpenGUI("Inventory", {
-						onClose = function()
-							self.GUIController:CloseGUI(tree)
-						end,
-					})
+					self.GuiController:OpenGui("Inventory", nil, { CloseItSelf = true })
 				end,
 				[Roact.Event.MouseEnter] = function(button: ImageButton)
 					self.SFXController:PlaySFX("MouseEnter")
@@ -84,12 +79,7 @@ function Main:render()
 				BackgroundTransparency = 1,
 				Image = "rbxassetid://15467853649",
 				[Roact.Event.Activated] = function()
-					local tree = nil
-					tree = self.GUIController:OpenGUI("Shop", {
-						onClose = function()
-							self.GUIController:CloseGUI(tree)
-						end,
-					})
+					self.GuiController:OpenGui("Shop", nil, { CloseItSelf = true })
 				end,
 				[Roact.Event.MouseEnter] = function(button: ImageButton)
 					self.SFXController:PlaySFX("MouseEnter")
@@ -105,12 +95,7 @@ function Main:render()
 				BackgroundTransparency = 1,
 				Image = "rbxassetid://15496776350",
 				[Roact.Event.Activated] = function()
-					local tree = nil
-					tree = self.GUIController:OpenGUI("Settings", {
-						onClose = function()
-							self.GUIController:CloseGUI(tree)
-						end,
-					})
+					self.GuiController:OpenGui("Settings", nil, { CloseItSelf = true })
 				end,
 				[Roact.Event.MouseEnter] = function(button: ImageButton)
 					self.SFXController:PlaySFX("MouseEnter")
@@ -175,9 +160,9 @@ function Main:render()
 					Text = "",
 					[Roact.Event.Activated] = function()
 						local tree = nil
-						tree = self.GUIController:OpenGUI("Shop", {
+						tree = self.GuiController:OpenGui("Shop", {
 							onClose = function()
-								self.GUIController:CloseGUI(tree)
+								self.GuiController:CloseGui(tree)
 							end,
 							starterPage = "Fruit Bucks",
 						})

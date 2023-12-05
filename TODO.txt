@@ -1,4 +1,3 @@
-quests
 tutorial
 update log
 daily rewards

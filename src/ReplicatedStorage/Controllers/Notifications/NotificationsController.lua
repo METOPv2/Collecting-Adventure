@@ -21,7 +21,7 @@ local NotificationsController = Knit.CreateController({
 })
 
 function NotificationsController:KnitInit()
-	self.GUIController = Knit.GetController("GUIController")
+	self.GuiController = Knit.GetController("GuiController")
 	self.NotificationsService = Knit.GetService("NotificationsService")
 	self.SFXController = Knit.GetController("SFXController")
 	self.SettingsController = Knit.GetController("SettingsController")
@@ -55,7 +55,7 @@ function NotificationsController:new(data: { text: string, title: string, durati
 
 	local holder = playerGui:FindFirstChild("Notifications") and playerGui.Notifications:FindFirstChild("Holder")
 	if not holder then
-		self.GUIController:OpenGUI("Notifications", nil, { DontStoreInHistory = true, DontCloseIfAlreadyOpen = true })
+		self.GuiController:OpenGui("Notifications", nil, { DontStoreInHistory = true, DontCloseIfAlreadyOpen = true })
 		return self:new(data)
 	end
 

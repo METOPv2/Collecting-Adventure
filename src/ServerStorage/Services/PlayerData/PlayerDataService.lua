@@ -26,6 +26,7 @@ export type PlayerData = {
 	SFXEnabled: boolean,
 	MusicVolume: number,
 	SFXVolume: number,
+	FeedbackSentTime: boolean,
 }
 
 export type DataOptions = {
@@ -59,6 +60,7 @@ local PlayerDataService = Knit.CreateService({
 		SFXEnabled = true,
 		MusicVolume = 0.5,
 		SFXVolume = 0.5,
+		FeedbackSentTime = 0,
 	},
 	Client = {
 		DataChanged = Knit.CreateSignal(),
