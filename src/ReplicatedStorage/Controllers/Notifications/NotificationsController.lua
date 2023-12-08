@@ -41,13 +41,15 @@ function NotificationsController:KnitInit()
 	)
 end
 
-function NotificationsController:new(data: { text: string, title: string, duration: number, type: string? })
+function NotificationsController:new(data: { text: string, title: string, duration: number, type: string? }): {}
 	assert(data, "Data is missing or nil.")
 	assert(data.text, "Text is missing or nil.")
 	assert(data.title, "Title is missing or nil.")
 	assert(data.duration, "Duration is missing or nil.")
 	assert(typeof(data.duration) == "number", `Duration mush be number. Got {typeof(data.duration)}.`)
-	assert(data.duration >= 5, "Duration can't be lower than 5.")
+	if data.duration >= 0 then
+		assert(data.duration >= 5, "Duration can't be lower than 5.")
+	end
 
 	if self.NotificationsEnabled == false then
 		return
@@ -68,6 +70,8 @@ function NotificationsController:new(data: { text: string, title: string, durati
 			self.SFXController:PlaySFX("Notification")
 		elseif data.type == "levelUp" then
 			self.SFXController:PlaySFX("LevelUp")
+		elseif data.type == "badgeAward" then
+			self.SFXController:PlaySFX("BadgeAward")
 		end
 	end
 
@@ -78,17 +82,36 @@ function NotificationsController:new(data: { text: string, title: string, durati
 	number.Value = 1
 	number.Changed:Connect(updateTransparency)
 
+	local tree
+	local closing = false
+	data.closeUI = function()
+		if tree and not closing then
+			closing = true
+
+			local tween = TweenService:Create(
+				number,
+				TweenInfo.new(1, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+				{ Value = 1 }
+			)
+			tween:Play()
+			tween.Completed:Wait()
+
+			Roact.unmount(tree)
+			tree = nil
+		end
+	end
+
 	local element = Roact.createElement(NotificationComponent, data)
-	local tree = Roact.mount(element, holder, "Notification")
-	task.delay(data.duration, Roact.unmount, tree)
+	tree = Roact.mount(element, holder, "Notification")
+
+	if data.duration >= 0 then
+		task.delay(data.duration, data.closeUI)
+	end
 
 	TweenService:Create(number, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Value = 0 })
 		:Play()
 
-	task.delay(data.duration - 1, function()
-		TweenService:Create(number, TweenInfo.new(1, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Value = 1 })
-			:Play()
-	end)
+	return data.closeUI
 end
 
 return NotificationsController

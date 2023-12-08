@@ -41,6 +41,30 @@ function SettingsController:KnitInit()
 		:catch(warn)
 		:await()
 
+	self.SettingsService
+		:GetSFXVolume()
+		:andThen(function(sfxVolume)
+			self.SFXVolume = sfxVolume
+		end)
+		:catch(warn)
+		:await()
+
+	self.SettingsService
+		:GetMusicVolume()
+		:andThen(function(musicVolume)
+			self.MusicVolume = musicVolume
+		end)
+		:catch(warn)
+		:await()
+
+	self.SettingsService.SettingChanged:Connect(function(key, volume)
+		if key == "SFXVolume" then
+			self.SFXVolume = volume
+		elseif key == "MusicVolume" then
+			self.MusicVolume = volume
+		end
+	end)
+
 	self.SettingsService.SettingChanged:Connect(function(setting: string, value: any)
 		self.Settings[setting] = value
 		self.SettingChanged:Fire(setting, value)
@@ -72,6 +96,22 @@ function SettingsController:GetSettings(): Settings
 	end
 
 	return self.Settings
+end
+
+function SettingsController:GetMusicVolume(): number
+	if self.Initializing then
+		self.Initialized:Wait()
+	end
+
+	return self.MusicVolume
+end
+
+function SettingsController:GetSFXVolume(): number
+	if self.Initializing then
+		self.Initialized:Wait()
+	end
+
+	return self.SFXVolume
 end
 
 return SettingsController

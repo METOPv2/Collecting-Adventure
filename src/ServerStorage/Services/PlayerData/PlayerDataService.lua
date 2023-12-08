@@ -27,6 +27,7 @@ export type PlayerData = {
 	MusicVolume: number,
 	SFXVolume: number,
 	FeedbackSentTime: boolean,
+	Spawnpoint: string,
 }
 
 export type DataOptions = {
@@ -61,11 +62,12 @@ local PlayerDataService = Knit.CreateService({
 		MusicVolume = 0.5,
 		SFXVolume = 0.5,
 		FeedbackSentTime = 0,
+		Spawnpoint = "Apple",
 	},
 	Client = {
 		DataChanged = Knit.CreateSignal(),
 	},
-	SaveOnStudio = false,
+	SaveOnStudio = true,
 	DataChanged = Signal.new(),
 	InitializedPlayer = Signal.new(),
 	DeinitializedPlayer = Signal.new(),

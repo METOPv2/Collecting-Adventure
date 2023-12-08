@@ -59,10 +59,10 @@ function FeedbackService:Send(player: Player, data: { text: string })
 	self.PlayerDataService:SetAsync(player, "FeedbackSentTime", workspace:GetServerTimeNow())
 
 	self.NotificationsService:new(player, {
-		text = "Thanks for feedback!",
+		text = "Thanks for the feedback! If you find an issue, know how to improve certain things in the game, or have new ideas that would make the game better, then write feedback.",
 		title = "Feedback sent",
 		type = "info",
-		duration = 10,
+		duration = 15,
 	})
 end
 

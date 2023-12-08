@@ -26,6 +26,8 @@ local function SpawnFruit(tree: Model, part: Part)
 	local LevelService = Knit.GetService("LevelService")
 	local NotificationsService = Knit.GetService("NotificationsService")
 	local SFXService = Knit.GetService("SFXService")
+	local GuiService = Knit.GetService("GuiService")
+	local MarkerService = Knit.GetService("MarkerService")
 
 	-- New fruit model
 	local fruitData = assert(FruitsDataBase[tree.Name], `{tree.Name}'s data not found or doesn't exist.`)
@@ -64,6 +66,7 @@ local function SpawnFruit(tree: Model, part: Part)
 	-- Initialize proximity prompt
 	local proximityPrompt = Instance.new("ProximityPrompt")
 	proximityPrompt.ActionText = "Harvest"
+	proximityPrompt.ObjectText = fruitData.Name
 	proximityPrompt.RequiresLineOfSight = false
 	proximityPrompt.HoldDuration = fruitData.HarvestTime
 	proximityPrompt.Triggered:Connect(function(playerWhoTriggered)
@@ -85,6 +88,13 @@ local function SpawnFruit(tree: Model, part: Part)
 		local bagData = BagsDataBase[playerBag]
 
 		if playerBag == "" then
+			GuiService:OpenGui(
+				playerWhoTriggered,
+				"Inventory",
+				{ starterPage = "Bags" },
+				{ CloseItSelf = true, DontCloseIfAlreadyOpen = true }
+			)
+
 			return NotificationsService:new(playerWhoTriggered, {
 				text = "You are unable to harvest fruits without an equipped bag. Consider equipping it from your inventory.",
 				title = "No bag is equipped",
@@ -94,6 +104,8 @@ local function SpawnFruit(tree: Model, part: Part)
 		end
 
 		if playerBag == "" or #playerFruits + 1 > bagData.MaxFruits then
+			MarkerService:New(playerWhoTriggered, workspace.SellParts, { Key = "Sell" })
+
 			return NotificationsService:new(playerWhoTriggered, {
 				text = "Sell your current fruits to have more capacity in your bag.",
 				title = "Max fruits reached",
@@ -124,6 +136,18 @@ local function SpawnFruit(tree: Model, part: Part)
 
 		-- Play SFX
 		SFXService:PlayLocalSFX(playerWhoTriggered, "Pop")
+
+		-- Check if bag is already full
+		if playerBag == "" or #PlayerDataService:GetAsync(playerWhoTriggered, "Fruits") >= bagData.MaxFruits then
+			MarkerService:New(playerWhoTriggered, workspace.SellParts, { Key = "Sell" })
+
+			return NotificationsService:new(playerWhoTriggered, {
+				text = "Sell your current fruits to have more capacity in your bag.",
+				title = "Max fruits reached",
+				duration = 15,
+				type = "warn",
+			})
+		end
 
 		-- Respawn fruit
 		fruit:Destroy()

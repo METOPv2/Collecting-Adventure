@@ -1,18 +1,9 @@
 -- Services
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Packages
 local Roact = require(ReplicatedStorage:WaitForChild("Packages").roact)
 local Knit = require(ReplicatedStorage:WaitForChild("Packages").knit)
-
--- Apps
-local InventoryApp = require(ReplicatedStorage:WaitForChild("Source").Apps.Inventory)
-local ShopApp = require(ReplicatedStorage:WaitForChild("Source").Apps.Shop)
-
--- Player
-local localPlayer = Players.LocalPlayer
-local playerGui = localPlayer:WaitForChild("PlayerGui")
 
 -- Main app
 local Main = Roact.Component:extend("Main")
@@ -20,6 +11,7 @@ local Main = Roact.Component:extend("Main")
 function Main:init()
 	self.SFXController = Knit.GetController("SFXController")
 	self.PlayerDataController = Knit.GetController("PlayerDataController")
+	self.PlayerEquipmentController = Knit.GetController("PlayerEquipmentController")
 	self.LevelController = Knit.GetController("LevelController")
 	self.GuiController = Knit.GetController("GuiController")
 
@@ -30,6 +22,20 @@ function Main:init()
 		end
 
 		self.updateFruitBucks(value)
+	end)
+
+	local bagData = self.PlayerEquipmentController:GetBagData(self.PlayerEquipmentController:GetEquippedBag())
+	local maxFruits = bagData and bagData.MaxFruits or 0
+
+	self.bag, self.setBag = Roact.createBinding(Vector2.new(#self.PlayerDataController:GetAsync("Fruits"), maxFruits))
+	self.PlayerEquipmentController.BagEquipped:Connect(function(bag: string)
+		self.setBag(Vector2.new(self.bag:getValue().X, self.PlayerEquipmentController:GetBagData(bag).MaxFruits or 0))
+	end)
+
+	self.PlayerDataController.DataChanged:Connect(function(key: string, value: {})
+		if key == "Fruits" then
+			self.setBag(Vector2.new(#value, self.bag:getValue().Y))
+		end
 	end)
 
 	self.level, self.updateLevel = Roact.createBinding(self.LevelController:GetLevel())
@@ -105,33 +111,42 @@ function Main:render()
 					button.ImageColor3 = Color3.fromRGB(255, 255, 255)
 				end,
 			}),
+			OpenTeleport = Roact.createElement("ImageButton", {
+				Size = UDim2.fromOffset(50, 50),
+				BorderSizePixel = 0,
+				BackgroundTransparency = 1,
+				Image = "rbxassetid://15567751490",
+				[Roact.Event.Activated] = function()
+					self.GuiController:OpenGui("Teleport", nil, { CloseItSelf = true })
+				end,
+				[Roact.Event.MouseEnter] = function(button: ImageButton)
+					self.SFXController:PlaySFX("MouseEnter")
+					button.ImageColor3 = Color3.fromRGB(199, 199, 199)
+				end,
+				[Roact.Event.MouseLeave] = function(button: ImageButton)
+					button.ImageColor3 = Color3.fromRGB(255, 255, 255)
+				end,
+			}),
 		}),
 		Panel = Roact.createElement("Frame", {
 			AnchorPoint = Vector2.new(0.5, 1),
 			Position = UDim2.fromScale(0.5, 1),
-			Size = UDim2.fromOffset(250, 30),
+			Size = UDim2.fromOffset(450, 30),
 			BorderSizePixel = 0,
 			BackgroundColor3 = Color3.fromRGB(41, 41, 41),
 		}, {
-			UICorner = Roact.createElement("UICorner", {
-				CornerRadius = UDim.new(0, 5),
-			}),
-			Line = Roact.createElement("Frame", {
-				Position = UDim2.fromScale(0.5, 0),
-				Size = UDim2.new(0, 1, 1, 0),
-				BorderSizePixel = 0,
-				BackgroundColor3 = Color3.fromRGB(87, 87, 87),
-				ZIndex = 2,
-			}),
 			Fill = Roact.createElement("Frame", {
 				Size = UDim2.fromScale(1, 0.5),
-				Position = UDim2.fromScale(0, 1),
-				AnchorPoint = Vector2.new(0, 1),
+				Position = UDim2.fromScale(0.5, 1),
+				AnchorPoint = Vector2.new(0.5, 1),
 				BorderSizePixel = 0,
 				BackgroundColor3 = Color3.fromRGB(41, 41, 41),
 			}),
+			UICorner = Roact.createElement("UICorner", {
+				CornerRadius = UDim.new(0, 5),
+			}),
 			FruitBucks = Roact.createElement("Frame", {
-				Size = UDim2.fromScale(0.5, 1),
+				Size = UDim2.new(0, 150, 1, 0),
 				BorderSizePixel = 0,
 				BackgroundTransparency = 1,
 			}, {
@@ -150,7 +165,7 @@ function Main:render()
 					ZIndex = 3,
 				}, {
 					UIPadding = Roact.createElement("UIPadding", {
-						PaddingLeft = UDim.new(0, 8),
+						PaddingLeft = UDim.new(0, 5),
 					}),
 				}),
 				Button = Roact.createElement("TextButton", {
@@ -172,9 +187,59 @@ function Main:render()
 					end,
 				}),
 			}),
+			FirstLine = Roact.createElement("Frame", {
+				Position = UDim2.fromOffset(150, 0),
+				Size = UDim2.new(0, 1, 1, 0),
+				BorderSizePixel = 0,
+				BackgroundColor3 = Color3.fromRGB(87, 87, 87),
+				ZIndex = 2,
+			}),
+			Fruits = Roact.createElement("Frame", {
+				Size = UDim2.new(0, 150, 1, 0),
+				Position = UDim2.fromOffset(150, 0),
+				BorderSizePixel = 0,
+				BackgroundTransparency = 1,
+			}, {
+				TextLabel = Roact.createElement("TextLabel", {
+					Size = UDim2.fromScale(1, 1),
+					BackgroundTransparency = 1,
+					BorderSizePixel = 0,
+					RichText = true,
+					Text = self.bag:map(function(value)
+						return `Fruits: <b><font size="18">{value.X}/{value.Y}</font></b>`
+					end),
+					TextSize = 14,
+					TextColor3 = Color3.fromRGB(255, 255, 255),
+					Font = Enum.Font.Ubuntu,
+					TextXAlignment = Enum.TextXAlignment.Left,
+					ZIndex = 3,
+				}, {
+					UIPadding = Roact.createElement("UIPadding", {
+						PaddingLeft = UDim.new(0, 8),
+					}),
+				}),
+				Progress = Roact.createElement("Frame", {
+					AnchorPoint = Vector2.new(0, 1),
+					Position = UDim2.fromScale(0, 1),
+					Size = UDim2.new(1, 0, 0, 2),
+					BorderSizePixel = 0,
+					BackgroundColor3 = self.bag:map(function(value)
+						return Color3.fromRGB(19, 212, 70)
+							:Lerp(Color3.fromRGB(212, 19, 19), math.min(1, value.X / value.Y))
+					end),
+					ZIndex = 3,
+				}),
+			}),
+			SecondLine = Roact.createElement("Frame", {
+				Position = UDim2.fromOffset(300, 0),
+				Size = UDim2.new(0, 1, 1, 0),
+				BorderSizePixel = 0,
+				BackgroundColor3 = Color3.fromRGB(87, 87, 87),
+				ZIndex = 2,
+			}),
 			Level = Roact.createElement("Frame", {
-				Size = UDim2.fromScale(0.5, 1),
-				Position = UDim2.fromScale(0.5, 0),
+				Size = UDim2.new(0, 150, 1, 0),
+				Position = UDim2.fromOffset(300, 0),
 				BorderSizePixel = 0,
 				BackgroundTransparency = 1,
 			}, {

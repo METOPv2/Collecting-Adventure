@@ -222,10 +222,12 @@ local function Holder(props)
 				PaddingRight = UDim.new(0, 1),
 				PaddingTop = UDim.new(0, 1),
 			}),
-			UIListLayout = Roact.createElement("UIListLayout", {
-				Wraps = true,
+			UIGridLayout = Roact.createElement("UIGridLayout", {
+				CellSize = UDim2.fromOffset(50, 50),
+				CellPadding = UDim2.fromOffset(5, 5),
 				FillDirection = Enum.FillDirection.Horizontal,
-				Padding = UDim.new(0, 5),
+				HorizontalAlignment = Enum.HorizontalAlignment.Left,
+				VerticalAlignment = Enum.VerticalAlignment.Top,
 			}),
 			Items = props.itemsElement,
 		}),

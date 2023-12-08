@@ -132,11 +132,13 @@ local function Holder(props)
 			return value == name
 		end),
 	}, {
-		UIListLayout = Roact.createElement("UIListLayout", {
-			Wraps = true,
-			FillDirection = Enum.FillDirection.Horizontal,
-			Padding = UDim.new(0, 5),
+		UIGridLayout = Roact.createElement("UIGridLayout", {
+			CellSize = UDim2.fromOffset(50, 50),
+			CellPadding = UDim2.fromOffset(5, 5),
+			HorizontalAlignment = Enum.HorizontalAlignment.Left,
+			VerticalAlignment = Enum.VerticalAlignment.Top,
 			SortOrder = Enum.SortOrder.Name,
+			FillDirection = Enum.FillDirection.Horizontal,
 		}),
 		Items = itemsElement,
 	})

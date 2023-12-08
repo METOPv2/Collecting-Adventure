@@ -1,7 +1,3 @@
-tutorial
-update log
-daily rewards
-starter pack
-teleport
-translation
-map improvements
+нічого не понятно
+туторіал
+локалізація

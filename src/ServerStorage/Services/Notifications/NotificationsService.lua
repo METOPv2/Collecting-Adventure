@@ -26,7 +26,9 @@ function NotificationsService:new(
 	assert(data.title, "Title is missing or nil.")
 	assert(data.duration, "Duration is missing or nil.")
 	assert(typeof(data.duration) == "number", `Duration mush be number. Got {typeof(data.duration)}.`)
-	assert(data.duration >= 5, "Duration can't be lower than 5.")
+	if data.duration >= 0 then
+		assert(data.duration >= 5, "Duration can't be lower than 5.")
+	end
 	self.Client.new:Fire(player, data)
 end
 

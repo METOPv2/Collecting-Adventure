@@ -32,6 +32,9 @@ function SFXController:KnitInit()
 	self.MusicEnabled = self.SettingsController:GetSetting("MusicEnabled")
 	self.SFXEnabled = self.SettingsController:GetSetting("SFXEnabled")
 
+	self:SetSFXVolume(self.SettingsController:GetSFXVolume())
+	self:SetMusicVolume(self.SettingsController:GetMusicVolume())
+
 	self.SFXService.PlaySFX:Connect(function(sfx: string)
 		self:PlaySFX(sfx)
 	end)

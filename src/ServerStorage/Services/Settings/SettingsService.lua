@@ -54,4 +54,22 @@ function SettingsService.Client:GetSettings(player: Player): Settings
 	return self.Server:GetSettings(player)
 end
 
+function SettingsService:GetSFXVolume(player: Player): number
+	assert(player ~= nil, "Player is missing or nil")
+	return self.PlayerDataService:GetAsync(player, "SFXVolume")
+end
+
+function SettingsService:GetMusicVolume(player: Player): number
+	assert(player ~= nil, "Player is missing or nil")
+	return self.PlayerDataService:GetAsync(player, "MusicVolume")
+end
+
+function SettingsService.Client:GetSFXVolume(player: Player): number
+	return self.Server:GetSFXVolume(player)
+end
+
+function SettingsService.Client:GetMusicVolume(player: Player): number
+	return self.Server:GetMusicVolume(player)
+end
+
 return SettingsService
