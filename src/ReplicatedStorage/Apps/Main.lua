@@ -45,7 +45,64 @@ function Main:init()
 	self.LevelController.XpChanged:Connect(self.updateXp)
 end
 
+local function Tag(props)
+	local text = props.text
+	local buttonTag = props.buttonTag
+
+	return Roact.createElement("TextLabel", {
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.5, 0, 0, -5),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		AutomaticSize = Enum.AutomaticSize.XY,
+		RichText = true,
+		Text = `<i>{text}</i>`,
+		TextSize = 12,
+		TextColor3 = Color3.fromRGB(255, 255, 255),
+		Font = Enum.Font.Ubuntu,
+		Visible = buttonTag:map(function(value)
+			return value == text
+		end),
+	})
+end
+
+local function OpenButton(props)
+	local SFXController = Knit.GetController("SFXController")
+	local GuiController = Knit.GetController("GuiController")
+
+	local image = props.image
+	local text = props.text
+	local buttonTag, setButtonTag = props.buttonTag, props.setButtonTag
+
+	return Roact.createElement("ImageButton", {
+		Size = UDim2.fromOffset(50, 50),
+		BorderSizePixel = 0,
+		BackgroundTransparency = 1,
+		Image = image,
+		[Roact.Event.Activated] = function()
+			GuiController:OpenGui(text, nil, { CloseItSelf = true })
+		end,
+		[Roact.Event.MouseEnter] = function(button: ImageButton)
+			SFXController:PlaySFX("MouseEnter")
+			button.ImageColor3 = Color3.fromRGB(199, 199, 199)
+			setButtonTag(text)
+		end,
+		[Roact.Event.MouseLeave] = function(button: ImageButton)
+			button.ImageColor3 = Color3.fromRGB(255, 255, 255)
+			task.defer(function()
+				if buttonTag:getValue() == text then
+					setButtonTag("")
+				end
+			end)
+		end,
+	}, {
+		Tag = Roact.createElement(Tag, { text = text, buttonTag = buttonTag }),
+	})
+end
+
 function Main:render()
+	local buttonTag, setButtonTag = Roact.createBinding("")
+
 	return Roact.createElement("ScreenGui", {
 		ResetOnSpawn = false,
 	}, {
@@ -63,69 +120,29 @@ function Main:render()
 				HorizontalAlignment = Enum.HorizontalAlignment.Center,
 				VerticalAlignment = Enum.VerticalAlignment.Center,
 			}),
-			OpenInventory = Roact.createElement("ImageButton", {
-				Size = UDim2.fromOffset(50, 50),
-				BorderSizePixel = 0,
-				BackgroundTransparency = 1,
-				Image = "rbxassetid://15467904190",
-				[Roact.Event.Activated] = function()
-					self.GuiController:OpenGui("Inventory", nil, { CloseItSelf = true })
-				end,
-				[Roact.Event.MouseEnter] = function(button: ImageButton)
-					self.SFXController:PlaySFX("MouseEnter")
-					button.ImageColor3 = Color3.fromRGB(199, 199, 199)
-				end,
-				[Roact.Event.MouseLeave] = function(button: ImageButton)
-					button.ImageColor3 = Color3.fromRGB(255, 255, 255)
-				end,
+			Inventory = Roact.createElement(OpenButton, {
+				image = "rbxassetid://15467904190",
+				buttonTag = buttonTag,
+				setButtonTag = setButtonTag,
+				text = "Inventory",
 			}),
-			OpenShop = Roact.createElement("ImageButton", {
-				Size = UDim2.fromOffset(50, 50),
-				BorderSizePixel = 0,
-				BackgroundTransparency = 1,
-				Image = "rbxassetid://15467853649",
-				[Roact.Event.Activated] = function()
-					self.GuiController:OpenGui("Shop", nil, { CloseItSelf = true })
-				end,
-				[Roact.Event.MouseEnter] = function(button: ImageButton)
-					self.SFXController:PlaySFX("MouseEnter")
-					button.ImageColor3 = Color3.fromRGB(199, 199, 199)
-				end,
-				[Roact.Event.MouseLeave] = function(button: ImageButton)
-					button.ImageColor3 = Color3.fromRGB(255, 255, 255)
-				end,
+			Shop = Roact.createElement(OpenButton, {
+				image = "rbxassetid://15467853649",
+				buttonTag = buttonTag,
+				setButtonTag = setButtonTag,
+				text = "Shop",
 			}),
-			OpenSettings = Roact.createElement("ImageButton", {
-				Size = UDim2.fromOffset(50, 50),
-				BorderSizePixel = 0,
-				BackgroundTransparency = 1,
-				Image = "rbxassetid://15496776350",
-				[Roact.Event.Activated] = function()
-					self.GuiController:OpenGui("Settings", nil, { CloseItSelf = true })
-				end,
-				[Roact.Event.MouseEnter] = function(button: ImageButton)
-					self.SFXController:PlaySFX("MouseEnter")
-					button.ImageColor3 = Color3.fromRGB(199, 199, 199)
-				end,
-				[Roact.Event.MouseLeave] = function(button: ImageButton)
-					button.ImageColor3 = Color3.fromRGB(255, 255, 255)
-				end,
+			Settings = Roact.createElement(OpenButton, {
+				image = "rbxassetid://15496776350",
+				buttonTag = buttonTag,
+				setButtonTag = setButtonTag,
+				text = "Settings",
 			}),
-			OpenTeleport = Roact.createElement("ImageButton", {
-				Size = UDim2.fromOffset(50, 50),
-				BorderSizePixel = 0,
-				BackgroundTransparency = 1,
-				Image = "rbxassetid://15567751490",
-				[Roact.Event.Activated] = function()
-					self.GuiController:OpenGui("Teleport", nil, { CloseItSelf = true })
-				end,
-				[Roact.Event.MouseEnter] = function(button: ImageButton)
-					self.SFXController:PlaySFX("MouseEnter")
-					button.ImageColor3 = Color3.fromRGB(199, 199, 199)
-				end,
-				[Roact.Event.MouseLeave] = function(button: ImageButton)
-					button.ImageColor3 = Color3.fromRGB(255, 255, 255)
-				end,
+			Teleport = Roact.createElement(OpenButton, {
+				image = "rbxassetid://15567751490",
+				buttonTag = buttonTag,
+				setButtonTag = setButtonTag,
+				text = "Teleport",
 			}),
 		}),
 		Panel = Roact.createElement("Frame", {
@@ -194,7 +211,7 @@ function Main:render()
 				BackgroundColor3 = Color3.fromRGB(87, 87, 87),
 				ZIndex = 2,
 			}),
-			Fruits = Roact.createElement("Frame", {
+			Bag = Roact.createElement("Frame", {
 				Size = UDim2.new(0, 150, 1, 0),
 				Position = UDim2.fromOffset(150, 0),
 				BorderSizePixel = 0,
@@ -206,7 +223,7 @@ function Main:render()
 					BorderSizePixel = 0,
 					RichText = true,
 					Text = self.bag:map(function(value)
-						return `Fruits: <b><font size="18">{value.X}/{value.Y}</font></b>`
+						return `Bag: <b><font size="18">{value.X}/{value.Y}</font></b>`
 					end),
 					TextSize = 14,
 					TextColor3 = Color3.fromRGB(255, 255, 255),

@@ -42,8 +42,8 @@ local function Touched(otherPart)
 			fruits += 1
 		end
 		NotificationsService:new(player, {
-			text = `You earned {fruitBucks} fruit bucks for selling {fruits} fruit{fruits > 1 and "s" or ""}.`,
-			title = "Fruits Sold",
+			text = `You earned {fruitBucks} fruit bucks for selling {fruits} fruits.`,
+			title = "Fruits sold",
 			duration = 10,
 			type = "sell",
 		})

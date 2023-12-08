@@ -10,12 +10,6 @@ local NotificationsService = Knit.CreateService({
 	},
 })
 
-function NotificationsService:KnitInit()
-	Players.PlayerAdded:Connect(function(player)
-		self:new(player, { text = "Welcome to Collecting Adventure!", title = "Welcome back!", duration = 15 })
-	end)
-end
-
 function NotificationsService:new(
 	player: Player,
 	data: { text: string, title: string, duration: number, type: string? }

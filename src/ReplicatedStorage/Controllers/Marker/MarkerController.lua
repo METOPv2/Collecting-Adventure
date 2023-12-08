@@ -140,6 +140,8 @@ function MarkerController:New(point: Vector3 | Instance, settings: Settings): ()
 					vector3Point = self:GetClosestPoint(point)
 				end
 
+				character = localPlayer.Character
+
 				path:ComputeAsync(character:GetPivot().Position, vector3Point)
 
 				local model = Instance.new("Model")

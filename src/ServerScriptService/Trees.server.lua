@@ -118,7 +118,7 @@ local function SpawnFruit(tree: Model, part: Part)
 			return NotificationsService:new(playerWhoTriggered, {
 				text = `Your current level is {LevelService:GetLevel(playerWhoTriggered)}, and you can't harvest fruit which requires {fruitData.Level - LevelService:GetLevel(
 					playerWhoTriggered
-				)} more level{fruitData.Level > 1 and "s" or ""}.`,
+				)} more levels.`,
 				title = "Level is too high",
 				duration = 15,
 				type = "warn",

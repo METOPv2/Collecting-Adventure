@@ -15,6 +15,7 @@ local TeleportService = Knit.CreateService({
 
 function TeleportService:KnitInit()
 	self.PlayerDataService = Knit.GetService("PlayerDataService")
+	self.NotificationsService = Knit.GetService("NotificationsService")
 end
 
 function TeleportService:KnitStart()
@@ -36,7 +37,12 @@ function TeleportService:KnitStart()
 		spawnpoint.Touched:Connect(function(otherPart: Part)
 			local character = otherPart.Parent
 			local player = Players:GetPlayerFromCharacter(character)
-			if player then
+			if player and self.PlayerDataService:GetAsync(player, "Spawnpoint") ~= spawnpoint.Name then
+				self.NotificationsService:new(player, {
+					text = `Spawnpoint changed from "{self.PlayerDataService:GetAsync(player, "Spawnpoint")}" to "{spawnpoint.Name}".`,
+					title = "Spawnpoint changed",
+					duration = 10,
+				})
 				self.PlayerDataService:SetAsync(player, "Spawnpoint", spawnpoint.Name)
 			end
 		end)

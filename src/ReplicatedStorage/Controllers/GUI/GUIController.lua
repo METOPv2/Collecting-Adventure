@@ -48,6 +48,7 @@ end
 
 function GuiController:KnitStart()
 	self:OpenGui("Main", nil, { DontStoreInHistory = true, DontCloseIfAlreadyOpen = true })
+	self:OpenGui("UpdateLog", { data = require(script.Parent.UpdateLogData) }, { CloseItSelf = true })
 end
 
 function GuiController:OpenGui(name: string, props: {}?, options: Options?): Roact.Tree

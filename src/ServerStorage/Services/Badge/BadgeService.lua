@@ -73,7 +73,7 @@ function KnitBadgeService:AwardBadge(player: Player, badgeId: string)
 	else
 		self.NotificationsService:new(player, {
 			text = `Failed to award "{self.BadgeNames[badgeId]}" badge. BadgeService: {result}.`,
-			title = "Error occured while awarding badge",
+			title = "Error occurred while awarding badge",
 			duration = -1,
 			type = "error",
 		})

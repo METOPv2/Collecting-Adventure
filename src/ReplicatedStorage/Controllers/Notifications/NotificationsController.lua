@@ -25,6 +25,7 @@ function NotificationsController:KnitInit()
 	self.NotificationsService = Knit.GetService("NotificationsService")
 	self.SFXController = Knit.GetController("SFXController")
 	self.SettingsController = Knit.GetController("SettingsController")
+	self.PlayerDataController = Knit.GetController("PlayerDataController")
 
 	self.NotificationsEnabled = self.SettingsController:GetSetting("NotificationsEnabled")
 
@@ -39,6 +40,10 @@ function NotificationsController:KnitInit()
 			self:new(data)
 		end
 	)
+
+	if (workspace:GetServerTimeNow() - self.PlayerDataController:GetAsync("FirstJoin")) > 60 then
+		self:new({ text = "Welcome to Collecting Adventure!", title = "Welcome back!", duration = 15 })
+	end
 end
 
 function NotificationsController:new(data: { text: string, title: string, duration: number, type: string? }): {}
