@@ -52,18 +52,28 @@ function FeedbackService:Send(player: Player, data: { text: string })
 		username = `{player.DisplayName}, {player.UserId}.`,
 	}
 
-	local encodedFeedbackData = HttpService:JSONEncode(feedbackData)
-
-	HttpService:PostAsync(self.Webhook, encodedFeedbackData)
+	local success, errorMessage = pcall(function()
+		local encodedFeedbackData = HttpService:JSONEncode(feedbackData)
+		HttpService:PostAsync(self.Webhook, encodedFeedbackData)
+	end)
 
 	self.PlayerDataService:SetAsync(player, "FeedbackSentTime", workspace:GetServerTimeNow())
 
-	self.NotificationsService:new(player, {
-		text = "Thanks for the feedback! If you find an issue, know how to improve certain things in the game, or have new ideas that would make the game better, then write feedback.",
-		title = "Feedback sent",
-		type = "info",
-		duration = 15,
-	})
+	if success then
+		self.NotificationsService:new(player, {
+			text = "Thanks for the feedback! If you find an issue, know how to improve certain things in the game, or have new ideas that would make the game better, then write feedback.",
+			title = "Feedback sent",
+			type = "info",
+			duration = 15,
+		})
+	else
+		self.NotificationsService:new(player, {
+			text = `Failed to send feedback. FeedbackService: {errorMessage}.`,
+			title = "Feedback sent failed",
+			type = "error",
+			duration = -1,
+		})
+	end
 end
 
 function FeedbackService.Client:Send(player: Player, data: { text: string })

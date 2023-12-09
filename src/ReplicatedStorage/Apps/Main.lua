@@ -81,6 +81,7 @@ local function OpenButton(props)
 
 	local image = props.image
 	local text = props.text
+	local gui = props.gui
 	local buttonTag, setButtonTag = props.buttonTag, props.setButtonTag
 
 	return Roact.createElement("ImageButton", {
@@ -105,7 +106,7 @@ local function OpenButton(props)
 					{ CloseItSelf = true }
 				)
 			else
-				GuiController:OpenGui(text, nil, { CloseItSelf = true })
+				GuiController:OpenGui((gui or text), nil, { CloseItSelf = true })
 			end
 		end,
 		[Roact.Event.MouseEnter] = function(button: ImageButton)
@@ -175,6 +176,13 @@ function Main:render()
 				buttonTag = buttonTag,
 				setButtonTag = setButtonTag,
 				text = "Tutorial",
+			}),
+			PromoCode = Roact.createElement(OpenButton, {
+				image = "rbxassetid://15589651263",
+				buttonTag = buttonTag,
+				setButtonTag = setButtonTag,
+				text = "Promo code",
+				gui = "PromoCode",
 			}),
 		}),
 		Panel = Roact.createElement("Frame", {

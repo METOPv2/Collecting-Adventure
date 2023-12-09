@@ -31,6 +31,7 @@ export type PlayerData = {
 	TutorialCompleted: boolean,
 	OpenUpdateLogOnStart: boolean,
 	WelcomeBackNotification: boolean,
+	RedeemedPromoCodes: {},
 }
 
 export type DataOptions = {
@@ -71,6 +72,7 @@ local PlayerDataService = Knit.CreateService({
 		TutorialCompleted = false,
 		OpenUpdateLogOnStart = true,
 		WelcomeBackNotification = true,
+		RedeemedPromoCodes = {},
 	},
 	Client = {
 		DataChanged = Knit.CreateSignal(),

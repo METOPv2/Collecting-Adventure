@@ -38,6 +38,7 @@ local function Feedback(props)
 				Font = Enum.Font.Ubuntu,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				TextYAlignment = Enum.TextYAlignment.Top,
+				ClearTextOnFocus = false,
 				[Roact.Change.Text] = function(object)
 					updateText(object.Text)
 				end,

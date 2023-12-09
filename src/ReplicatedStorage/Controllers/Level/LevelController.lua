@@ -54,7 +54,7 @@ function LevelController:KnitInit()
 				})
 				self.MarkerController:New(
 					workspace:WaitForChild("Spawnpoints"):WaitForChild(name).Position,
-					{ Key = `{name}_Unlocked`, Duration = 15 }
+					{ Key = `{name}_Unlocked`, Duration = -1 }
 				)
 			end
 		end

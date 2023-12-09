@@ -18,7 +18,7 @@ return {
 	Corn = {
 		Name = "Corn",
 		Id = "Corn",
-		Level = 5,
+		Level = 8,
 		Xp = 3,
 		SellValue = 2,
 		HarvestTime = 2.5,
@@ -26,7 +26,7 @@ return {
 	Strawberry = {
 		Name = "Strawberry",
 		Id = "Strawberry",
-		Level = 8,
+		Level = 15,
 		Xp = 1,
 		SellValue = 1,
 		HarvestTime = 0.75,
@@ -34,7 +34,7 @@ return {
 	Pumpkin = {
 		Name = "Pumpkin",
 		Id = "Pumpkin",
-		Level = 12,
+		Level = 20,
 		Xp = 3,
 		SellValue = 3,
 		HarvestTime = 2.5,
@@ -42,7 +42,7 @@ return {
 	Blueberry = {
 		Name = "Blueberry",
 		Id = "Blueberry",
-		Level = 16,
+		Level = 30,
 		Xp = 2,
 		SellValue = 2,
 		HarvestTime = 1,
@@ -50,7 +50,7 @@ return {
 	Apricot = {
 		Name = "Apricot",
 		Id = "Apricot",
-		Level = 20,
+		Level = 50,
 		Xp = 4,
 		SellValue = 4,
 		HarvestTime = 1.5,

@@ -167,6 +167,7 @@ function MarkerController:New(point: Vector3 | Instance, settings: Settings, poi
 
 					local newHighlight = Instance.new("Highlight")
 					newHighlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+					newHighlight.FillTransparency = 1
 					newHighlight.Parent = model
 
 					table.insert(models, model)
@@ -182,7 +183,7 @@ function MarkerController:New(point: Vector3 | Instance, settings: Settings, poi
 						end
 
 						local newPart = Instance.new("Part")
-						newPart.BrickColor = BrickColor.Red()
+						newPart.Color = Color3.fromRGB(84, 207, 31)
 						newPart.Size = Vector3.new(1, 1, (waypoint.Position - waypoints[i + 1].Position).Magnitude)
 						newPart.CFrame = CFrame.lookAt(waypoint.Position, waypoints[i + 1].Position)
 						newPart.CFrame *= CFrame.new(0, 0, -(newPart.Size.Z / 2))
