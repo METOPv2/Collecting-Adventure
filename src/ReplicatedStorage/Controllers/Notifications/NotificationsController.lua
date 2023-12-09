@@ -41,7 +41,10 @@ function NotificationsController:KnitInit()
 		end
 	)
 
-	if (workspace:GetServerTimeNow() - self.PlayerDataController:GetAsync("FirstJoin")) > 60 then
+	if
+		self.SettingsController:GetSetting("WelcomeBackNotification")
+		and (workspace:GetServerTimeNow() - self.PlayerDataController:GetAsync("FirstJoin")) > 60
+	then
 		self:new({ text = "Welcome to Collecting Adventure!", title = "Welcome back!", duration = 15 })
 	end
 end

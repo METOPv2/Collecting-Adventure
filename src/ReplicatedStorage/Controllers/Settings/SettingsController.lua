@@ -12,6 +12,8 @@ type Settings = {
 	SFXEnabled: boolean,
 	MusicVolume: number,
 	SFXVolume: number,
+	OpenUpdateLogOnStart: boolean,
+	WelcomeBackNotification: boolean,
 }
 
 -- Settings controller
@@ -31,6 +33,8 @@ function SettingsController:KnitInit()
 		SFXEnabled = "SFX Enabled",
 		MusicVolume = "Music Volume",
 		SFXVolume = "SFX Volume",
+		OpenUpdateLogOnStart = "Open Update Log on Start",
+		WelcomeBackNotification = `"Welcome Back" Notification`,
 	}
 
 	self.SettingsService

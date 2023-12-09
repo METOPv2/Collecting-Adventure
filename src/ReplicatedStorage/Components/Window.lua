@@ -11,7 +11,7 @@ local function Window(props)
 
 	local size = props.size
 	local title = props.title
-	local onClose = props.onClose
+	local closeGui = props.closeGui
 
 	return Roact.createElement("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -62,7 +62,7 @@ local function Window(props)
 				Image = "rbxassetid://15421223061",
 				ImageColor3 = Color3.fromRGB(255, 255, 255),
 				ZIndex = 2,
-				[Roact.Event.Activated] = onClose,
+				[Roact.Event.Activated] = closeGui,
 				[Roact.Event.MouseEnter] = function(button: ImageButton)
 					button.ImageColor3 = Color3.fromRGB(199, 199, 199)
 					SFXController:PlaySFX("MouseEnter")

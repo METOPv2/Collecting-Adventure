@@ -29,7 +29,14 @@ function Main:init()
 
 	self.bag, self.setBag = Roact.createBinding(Vector2.new(#self.PlayerDataController:GetAsync("Fruits"), maxFruits))
 	self.PlayerEquipmentController.BagEquipped:Connect(function(bag: string)
-		self.setBag(Vector2.new(self.bag:getValue().X, self.PlayerEquipmentController:GetBagData(bag).MaxFruits or 0))
+		self.setBag(
+			Vector2.new(
+				self.bag:getValue().X,
+				self.PlayerEquipmentController:GetBagData(bag)
+						and self.PlayerEquipmentController:GetBagData(bag).MaxFruits
+					or 0
+			)
+		)
 	end)
 
 	self.PlayerDataController.DataChanged:Connect(function(key: string, value: {})
@@ -69,6 +76,8 @@ end
 local function OpenButton(props)
 	local SFXController = Knit.GetController("SFXController")
 	local GuiController = Knit.GetController("GuiController")
+	local TutorialController = Knit.GetController("TutorialController")
+	local PlayerDataController = Knit.GetController("PlayerDataController")
 
 	local image = props.image
 	local text = props.text
@@ -79,8 +88,25 @@ local function OpenButton(props)
 		BorderSizePixel = 0,
 		BackgroundTransparency = 1,
 		Image = image,
-		[Roact.Event.Activated] = function()
-			GuiController:OpenGui(text, nil, { CloseItSelf = true })
+		[Roact.Event.Activated] = function(button: ImageButton)
+			button.ImageColor3 = Color3.fromRGB(255, 255, 255)
+			task.defer(function()
+				if buttonTag:getValue() == text then
+					setButtonTag("")
+				end
+			end)
+
+			if text == "Tutorial" then
+				TutorialController:StartTutorial()
+			elseif text == "Teleport" then
+				GuiController:OpenGui(
+					text,
+					{ spawnpoint = PlayerDataController:GetAsync("Spawnpoint") },
+					{ CloseItSelf = true }
+				)
+			else
+				GuiController:OpenGui(text, nil, { CloseItSelf = true })
+			end
 		end,
 		[Roact.Event.MouseEnter] = function(button: ImageButton)
 			SFXController:PlaySFX("MouseEnter")
@@ -143,6 +169,12 @@ function Main:render()
 				buttonTag = buttonTag,
 				setButtonTag = setButtonTag,
 				text = "Teleport",
+			}),
+			Tutorial = Roact.createElement(OpenButton, {
+				image = "rbxassetid://15584938565",
+				buttonTag = buttonTag,
+				setButtonTag = setButtonTag,
+				text = "Tutorial",
 			}),
 		}),
 		Panel = Roact.createElement("Frame", {

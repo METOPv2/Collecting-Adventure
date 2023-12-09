@@ -7,6 +7,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 -- Packages
 local Knit = require(ReplicatedStorage:WaitForChild("Packages").knit)
 local Signal = require(ReplicatedStorage:WaitForChild("Packages").signal)
+local Promise = require(ReplicatedStorage:WaitForChild("Packages").promise)
 
 -- Player
 local localPlayer = Players.LocalPlayer
@@ -15,6 +16,7 @@ local localPlayer = Players.LocalPlayer
 type Settings = {
 	Key: string,
 	Distance: number?,
+	Duration: number?,
 }
 
 -- Marker controller
@@ -42,8 +44,11 @@ end
 
 function MarkerController:KnitStart()
 	if
-		#self.PlayerDataController:GetAsync("Fruits")
-		>= self.PlayerEquipmentController:GetBagData(self.PlayerEquipmentController:GetEquippedBag()).MaxFruits
+		#self.PlayerDataController:GetAsync("Fruits") ~= 0
+		and #self.PlayerDataController:GetAsync("Fruits")
+			>= (self.PlayerEquipmentController:GetBagData(self.PlayerEquipmentController:GetEquippedBag()) and self.PlayerEquipmentController:GetBagData(
+				self.PlayerEquipmentController:GetEquippedBag()
+			).MaxFruits or 0)
 	then
 		self:New(workspace.SellParts, { Key = "Sell" })
 
@@ -56,105 +61,116 @@ function MarkerController:KnitStart()
 	end
 end
 
-function MarkerController:New(point: Vector3 | Instance, settings: Settings): ()
+function MarkerController:New(point: Vector3 | Instance, settings: Settings, pointClassNameWhiteList: {}): ()
 	assert(point ~= nil, "Point is missing or nil.")
 	assert(settings ~= nil, "Settings is missing or nil.")
 	assert(settings.Key ~= nil, "Key is missing or nil.")
 
-	local closeNotification = self.NotificationsController:new({
-		text = `Mark "{settings.Key}" currently active. You can cancel it by clicking close button on this notification.`,
-		title = "Active mark",
-		onClose = function()
-			self:Cancel(settings.Key)
-		end,
-		duration = -1,
-		mode = "info",
-	})
-
-	if self.Keys[settings.Key] then
-		self.Keys[settings.Key]()
-	end
-
-	local path: Path = PathfindingService:CreatePath({
-		Costs = { ["Ground"] = 0, ["Grass"] = 100 },
-	})
-
-	local active = true
-	local models = {}
-
-	local vector3Point
-
-	if typeof(point) ~= "Vector3" then
-		vector3Point = self:GetClosestPoint(point)
-	else
-		vector3Point = point
-	end
-
-	local finishMark = Instance.new("BillboardGui")
-	finishMark.AlwaysOnTop = true
-	finishMark.MaxDistance = math.huge
-	finishMark.Size = UDim2.fromOffset(100, 100)
-	finishMark.StudsOffsetWorldSpace = Vector3.new(vector3Point)
-	finishMark.Parent = workspace
-
-	local markerImage = Instance.new("ImageLabel")
-	markerImage.Image = "rbxassetid://15574942973"
-	markerImage.Size = UDim2.fromScale(1, 1)
-	markerImage.BackgroundTransparency = 1
-	markerImage.BorderSizePixel = 0
-	markerImage.Parent = finishMark
-
-	local function disActivate()
-		active = false
-		coroutine.wrap(closeNotification)()
-		finishMark:Destroy()
-		for i, oldModel in ipairs(models) do
-			oldModel:Destroy()
-			models[i] = nil
-		end
-	end
-
-	self.Keys[settings.Key] = disActivate
-
-	coroutine.wrap(function()
-		repeat
-			finishMark.StudsOffsetWorldSpace = vector3Point
-				+ Vector3.new(0, math.max(0, math.min(localPlayer:DistanceFromCharacter(vector3Point) - 50, 15), 5), 0)
-			if localPlayer:DistanceFromCharacter(vector3Point) < (settings.Distance and settings.Distance or 10) then
+	return Promise.new(function(resolve)
+		local closeNotification = self.NotificationsController:new({
+			text = `Mark "{settings.Key}" currently active. You can cancel it by clicking close button on this notification.`,
+			title = "Active mark",
+			onClose = function()
 				self:Cancel(settings.Key)
-			end
-			task.wait()
-		until not active
-	end)()
+			end,
+			duration = (settings and settings.Duration) and settings.Duration or -1,
+			mode = "info",
+		})
 
-	coroutine.wrap(function()
-		if not localPlayer.Character then
-			localPlayer.CharacterAdded:Wait()
+		if self.Keys[settings.Key] then
+			self.Keys[settings.Key]()
 		end
 
-		task.defer(function()
-			local character = localPlayer.Character
+		local path: Path = PathfindingService:CreatePath({
+			Costs = { ["Ground"] = 0, ["Grass"] = 100 },
+		})
 
-			while active do
-				if typeof(point) ~= "Vector3" then
-					vector3Point = self:GetClosestPoint(point)
+		local active = true
+		local models = {}
+
+		local vector3Point
+
+		if typeof(point) ~= "Vector3" then
+			vector3Point = self:GetClosestPoint(point, pointClassNameWhiteList)
+		else
+			vector3Point = point
+		end
+
+		local finishMark = Instance.new("BillboardGui")
+		finishMark.AlwaysOnTop = true
+		finishMark.MaxDistance = math.huge
+		finishMark.Size = UDim2.fromOffset(100, 100)
+		finishMark.StudsOffsetWorldSpace = Vector3.new(vector3Point)
+		finishMark.Parent = workspace
+
+		local markerImage = Instance.new("ImageLabel")
+		markerImage.Image = "rbxassetid://15574942973"
+		markerImage.Size = UDim2.fromScale(1, 1)
+		markerImage.BackgroundTransparency = 1
+		markerImage.BorderSizePixel = 0
+		markerImage.Parent = finishMark
+
+		local function disActivate()
+			resolve()
+			active = false
+			coroutine.wrap(closeNotification)()
+			finishMark:Destroy()
+			for i, oldModel in ipairs(models) do
+				oldModel:Destroy()
+				models[i] = nil
+			end
+		end
+
+		if settings and settings.Duration then
+			task.delay(settings.Duration, function()
+				self:Cancel(settings.Key)
+			end)
+		end
+
+		self.Keys[settings.Key] = disActivate
+
+		coroutine.wrap(function()
+			repeat
+				finishMark.StudsOffsetWorldSpace = vector3Point
+					+ Vector3.new(
+						0,
+						math.max(0, math.min(localPlayer:DistanceFromCharacter(vector3Point) - 50, 15), 5),
+						0
+					)
+				if localPlayer:DistanceFromCharacter(vector3Point) < (settings.Distance or 10) then
+					self:Cancel(settings.Key)
 				end
+				task.wait()
+			until not active
+		end)()
 
-				character = localPlayer.Character
+		coroutine.wrap(function()
+			if not localPlayer.Character then
+				localPlayer.CharacterAdded:Wait()
+			end
 
-				path:ComputeAsync(character:GetPivot().Position, vector3Point)
+			task.defer(function()
+				local character = localPlayer.Character
 
-				local model = Instance.new("Model")
-				model.Name = settings.Key
-				model.Parent = self.Holder
+				while active do
+					if typeof(point) ~= "Vector3" then
+						vector3Point = self:GetClosestPoint(point, pointClassNameWhiteList)
+					end
 
-				local newHighlight = Instance.new("Highlight")
-				newHighlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-				newHighlight.Parent = model
+					character = localPlayer.Character
 
-				table.insert(models, model)
+					path:ComputeAsync(character:GetPivot().Position, Vector3.new(vector3Point.X, 10.5, vector3Point.Z))
 
-				coroutine.wrap(function()
+					local model = Instance.new("Model")
+					model.Name = settings.Key
+					model.Parent = self.Holder
+
+					local newHighlight = Instance.new("Highlight")
+					newHighlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+					newHighlight.Parent = model
+
+					table.insert(models, model)
+
 					local waypoints = path:GetWaypoints()
 					for i, waypoint in ipairs(waypoints) do
 						if not active then
@@ -177,38 +193,46 @@ function MarkerController:New(point: Vector3 | Instance, settings: Settings): ()
 						newPart.CanQuery = false
 						newPart.Parent = model
 
-						Debris:AddItem(newPart, 3)
+						Debris:AddItem(newPart, 2)
 
 						task.wait()
 					end
 
-					task.wait(3)
+					task.wait(2)
 
 					if table.find(models, model) then
 						table.remove(models, table.find(models, model))
 						model:Destroy()
 					end
-				end)()
-
-				task.wait(5)
-			end
-		end)
-	end)()
-
-	return disActivate
+				end
+			end)
+		end)()
+	end)
 end
 
 function MarkerController:Cancel(key: string)
 	assert(key ~= nil, "Key is missing or nil.")
 	if self.Keys[key] then
-		coroutine.wrap(self.Keys[key])()
+		self.Keys[key]()
 		self.Keys[key] = nil
 		self.MarkFinished:Fire(key)
 		self.MarkerService.MarkFinished:Fire(key)
 	end
 end
 
-function MarkerController:GetClosestPoint(holder: Instance): Vector3
+function MarkerController:CancelAll(keys: { string }?)
+	if keys then
+		for _, key in ipairs(keys) do
+			coroutine.wrap(self.Cancel)(self, key)
+		end
+	else
+		for key, _ in pairs(self.Keys) do
+			coroutine.wrap(self.Cancel)(self, key)
+		end
+	end
+end
+
+function MarkerController:GetClosestPoint(holder: Instance, classNameWhileList: {}?): Vector3
 	if not game:IsLoaded() then
 		game.Loaded:Wait()
 	end
@@ -219,16 +243,27 @@ function MarkerController:GetClosestPoint(holder: Instance): Vector3
 
 	local closest
 
-	for _, part: Part in ipairs(holder:GetDescendants()) do
-		if part.ClassName ~= "Part" and part.ClassName ~= "MeshPart" then
-			continue
-		end
-
+	for _, part: Part | Model in ipairs(holder:GetDescendants()) do
 		if
-			not closest
-			or localPlayer:DistanceFromCharacter(part.Position) < localPlayer:DistanceFromCharacter(closest)
+			(classNameWhileList and table.find(classNameWhileList, part.ClassName))
+			or part.ClassName == "Part"
+			or part.ClassName == "MeshPart"
+			or part.ClassName == "Model"
 		then
-			closest = part.Position
+			local position
+
+			if part.ClassName == "Model" then
+				position = part:GetPivot().Position
+			elseif part.ClassName == "Part" or part.ClassName == "MeshPart" then
+				position = part.Position
+			end
+
+			if
+				not closest
+				or localPlayer:DistanceFromCharacter(position) < localPlayer:DistanceFromCharacter(closest)
+			then
+				closest = position
+			end
 		end
 	end
 

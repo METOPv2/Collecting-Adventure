@@ -1,8 +1,13 @@
 -- Services
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
 
 -- Packages
 local Knit = require(ReplicatedStorage.Packages.knit)
+
+-- Data bases
+local FruitsDataBase = require(ServerStorage.Source.DataBases.Fruits)
 
 -- Level service
 local LevelService = Knit.CreateService({
@@ -14,7 +19,9 @@ local LevelService = Knit.CreateService({
 })
 
 function LevelService:KnitInit()
+	self.NotificationsService = Knit.GetService("NotificationsService")
 	self.PlayerDataService = Knit.GetService("PlayerDataService")
+	self.MarkerService = Knit.GetService("MarkerService")
 	self.PlayerDataService.InitializedPlayer:Connect(function(player)
 		self:LevelUp(player)
 	end)
@@ -39,13 +46,16 @@ function LevelService:IncrementXp(player: Player, amount: number)
 	self:LevelUp(player)
 end
 
-function LevelService:LevelUp(player: Player)
+function LevelService:LevelUp(player: Player, options: { levelUpped: number }?)
 	assert(player, "Player is missing or nil.")
 	if self.PlayerDataService:GetAsync(player, "Xp") >= self:CalculateXpGoal(player) then
 		self:IncrementXp(player, -self:CalculateXpGoal(player))
 		self.PlayerDataService:IncrementAsync(player, "Level", 1)
-		self.Client.LevelUp:Fire(player, self:GetLevel(player))
-		self:LevelUp(player)
+		self:LevelUp(player, { levelUpped = (options and options.levelUpped or 0) + 1 })
+	else
+		if options and options.levelUpped then
+			self.Client.LevelUp:Fire(player, self:GetLevel(player), options.levelUpped)
+		end
 	end
 end
 

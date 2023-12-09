@@ -93,7 +93,7 @@ end
 
 -- Update log app
 local function UpdateLog(props)
-	local onClose = props.onClose
+	local closeGui = props.closeGui
 	local data = props.data
 
 	return Roact.createElement("ScreenGui", {
@@ -102,7 +102,7 @@ local function UpdateLog(props)
 		Container = Roact.createElement(WindowComponent, {
 			title = "Update log",
 			size = UDim2.fromOffset(400, 300),
-			onClose = onClose,
+			closeGui = closeGui,
 		}, {
 			Holder = Roact.createElement("ScrollingFrame", {
 				Size = UDim2.fromScale(1, 1),

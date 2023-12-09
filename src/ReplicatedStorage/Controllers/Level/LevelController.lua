@@ -14,6 +14,8 @@ local LevelController = Knit.CreateController({
 function LevelController:KnitInit()
 	self.LevelService = Knit.GetService("LevelService")
 	self.NotificationsController = Knit.GetController("NotificationsController")
+	self.FruitsController = Knit.GetController("FruitsController")
+	self.MarkerController = Knit.GetController("MarkerController")
 
 	self.LevelService
 		:GetXp()
@@ -31,16 +33,31 @@ function LevelController:KnitInit()
 		:catch(warn)
 		:await()
 
-	self.LevelService.LevelUp:Connect(function(newLevel)
-		local oldLevel = self:GetLevel()
+	self.LevelService.LevelUp:Connect(function(newLevel: number, levelUpped: number)
 		self.Level = newLevel
 		self.LevelUp:Fire(newLevel)
+
 		self.NotificationsController:new({
-			text = `You level upped from level {oldLevel} to {newLevel}. Congrats! :)`,
+			text = `You level upped from level {newLevel - levelUpped} to {newLevel}. Congrats! :)`,
 			title = "Level Up",
 			duration = 15,
 			type = "levelUp",
 		})
+
+		for name, level in pairs(self.FruitsController:GetFruitLevels()) do
+			if level > (newLevel - levelUpped) and newLevel >= level then
+				self.NotificationsController:new({
+					text = `Now you're able to harvest "{name}" fruit.`,
+					title = "Unlocked new fruit to harvest",
+					duration = 15,
+					type = "info",
+				})
+				self.MarkerController:New(
+					workspace:WaitForChild("Spawnpoints"):WaitForChild(name).Position,
+					{ Key = `{name}_Unlocked`, Duration = 15 }
+				)
+			end
+		end
 	end)
 
 	self.LevelService.XpChanged:Connect(function(xp)

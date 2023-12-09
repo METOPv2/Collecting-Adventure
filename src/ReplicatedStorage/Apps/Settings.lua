@@ -234,7 +234,7 @@ end
 
 -- Settings app
 local function Settings(props)
-	local onClose = props.onClose
+	local closeGui = props.closeGui
 
 	return Roact.createElement("ScreenGui", {
 		ResetOnSpawn = false,
@@ -242,7 +242,7 @@ local function Settings(props)
 		Contrainer = Roact.createElement(WindowsComponent, {
 			title = "Settings",
 			size = UDim2.fromOffset(400, 300),
-			onClose = onClose,
+			closeGui = closeGui,
 		}, {
 			Container = Roact.createElement("ScrollingFrame", {
 				Size = UDim2.fromScale(1, 1),

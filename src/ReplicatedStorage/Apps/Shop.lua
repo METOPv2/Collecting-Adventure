@@ -337,7 +337,7 @@ end
 local Shop = Roact.Component:extend("Shop")
 
 function Shop:render()
-	local onClose = self.props.onClose
+	local closeGui = self.props.closeGui
 	local starterPage = self.props.starterPage
 
 	local activeTab, changeActiveTab = Roact.createBinding(starterPage and starterPage or "Bags")
@@ -348,7 +348,7 @@ function Shop:render()
 		Contrainer = Roact.createElement(WindowComponent, {
 			title = "Shop",
 			size = UDim2.fromOffset(400, 300),
-			onClose = onClose,
+			closeGui = closeGui,
 		}, {
 			Tabs = Roact.createElement("ScrollingFrame", {
 				Size = UDim2.new(0, 150, 1, 0),

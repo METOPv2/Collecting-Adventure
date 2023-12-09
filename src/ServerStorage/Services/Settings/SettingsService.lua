@@ -12,12 +12,22 @@ type Settings = {
 	SFXEnabled: boolean,
 	MusicVolume: number,
 	SFXVolume: number,
+	OpenUpdateLogOnStart: boolean,
+	WelcomeBackNotification: boolean,
 }
 
 -- Settings service
 local SettingsService = Knit.CreateService({
 	Name = "SettingsService",
-	Settings = { "NotificationsEnabled", "MusicEnabled", "SFXEnabled", "MusicVolume", "SFXVolume" },
+	Settings = {
+		"NotificationsEnabled",
+		"MusicEnabled",
+		"SFXEnabled",
+		"MusicVolume",
+		"SFXVolume",
+		"OpenUpdateLogOnStart",
+		"WelcomeBackNotification",
+	},
 	Client = {
 		SettingChanged = Knit.CreateSignal(),
 	},

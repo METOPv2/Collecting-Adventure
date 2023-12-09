@@ -28,6 +28,9 @@ export type PlayerData = {
 	SFXVolume: number,
 	FeedbackSentTime: boolean,
 	Spawnpoint: string,
+	TutorialCompleted: boolean,
+	OpenUpdateLogOnStart: boolean,
+	WelcomeBackNotification: boolean,
 }
 
 export type DataOptions = {
@@ -45,6 +48,8 @@ local PlayerDataService = Knit.CreateService({
 		"SFXEnabled",
 		"MusicVolume",
 		"SFXVolume",
+		"TutorialCompleted",
+		"WelcomeBackNotification",
 	},
 	Template = {
 		Fruits = {},
@@ -63,6 +68,9 @@ local PlayerDataService = Knit.CreateService({
 		SFXVolume = 0.5,
 		FeedbackSentTime = 0,
 		Spawnpoint = "Apple",
+		TutorialCompleted = false,
+		OpenUpdateLogOnStart = true,
+		WelcomeBackNotification = true,
 	},
 	Client = {
 		DataChanged = Knit.CreateSignal(),

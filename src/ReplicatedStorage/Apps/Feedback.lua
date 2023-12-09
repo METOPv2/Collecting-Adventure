@@ -13,7 +13,7 @@ local FeedbackController = Knit.GetController("FeedbackController")
 
 -- Feedback app
 local function Feedback(props)
-	local onClose = props.onClose
+	local closeGui = props.closeGui
 
 	local text, updateText = Roact.createBinding("")
 
@@ -23,7 +23,7 @@ local function Feedback(props)
 		Contrainer = Roact.createElement(WindowComponent, {
 			size = UDim2.fromOffset(400, 300),
 			title = "Feedback",
-			onClose = onClose,
+			closeGui = closeGui,
 		}, {
 			TextBox = Roact.createElement("TextBox", {
 				BorderSizePixel = 0,

@@ -12,22 +12,12 @@ local fruitsAssets: Folder = ReplicatedStorage.Assets.Fruits
 -- Data bases
 local TreesDataBase = require(ServerStorage.Source.DataBases.Trees)
 local FruitsDataBase = require(ServerStorage.Source.DataBases.Fruits)
-local BagsDataBase = require(ServerStorage.Source.DataBases.Bags)
-
--- Types
-type Fruit = {
-	Name: string,
-}
 
 -- Functions
 local function SpawnFruit(tree: Model, part: Part)
 	-- Services
-	local PlayerDataService = Knit.GetService("PlayerDataService")
-	local LevelService = Knit.GetService("LevelService")
 	local NotificationsService = Knit.GetService("NotificationsService")
-	local SFXService = Knit.GetService("SFXService")
-	local GuiService = Knit.GetService("GuiService")
-	local MarkerService = Knit.GetService("MarkerService")
+	local FruitsService = Knit.GetService("FruitsService")
 
 	-- New fruit model
 	local fruitData = assert(FruitsDataBase[tree.Name], `{tree.Name}'s data not found or doesn't exist.`)
@@ -83,71 +73,7 @@ local function SpawnFruit(tree: Model, part: Part)
 			})
 		end
 
-		local playerFruits = PlayerDataService:GetAsync(playerWhoTriggered, "Fruits")
-		local playerBag = PlayerDataService:GetAsync(playerWhoTriggered, "EquippedBag")
-		local bagData = BagsDataBase[playerBag]
-
-		if playerBag == "" then
-			GuiService:OpenGui(
-				playerWhoTriggered,
-				"Inventory",
-				{ starterPage = "Bags" },
-				{ CloseItSelf = true, DontCloseIfAlreadyOpen = true }
-			)
-
-			return NotificationsService:new(playerWhoTriggered, {
-				text = "You are unable to harvest fruits without an equipped bag. Consider equipping it from your inventory.",
-				title = "No bag is equipped",
-				duration = 15,
-				type = "warn",
-			})
-		end
-
-		if playerBag == "" or #playerFruits + 1 > bagData.MaxFruits then
-			MarkerService:New(playerWhoTriggered, workspace.SellParts, { Key = "Sell" })
-
-			return NotificationsService:new(playerWhoTriggered, {
-				text = "Sell your current fruits to have more capacity in your bag.",
-				title = "Max fruits reached",
-				duration = 15,
-				type = "warn",
-			})
-		end
-
-		if LevelService:GetLevel(playerWhoTriggered) < fruitData.Level then
-			return NotificationsService:new(playerWhoTriggered, {
-				text = `Your current level is {LevelService:GetLevel(playerWhoTriggered)}, and you can't harvest fruit which requires {fruitData.Level - LevelService:GetLevel(
-					playerWhoTriggered
-				)} more levels.`,
-				title = "Level is too high",
-				duration = 15,
-				type = "warn",
-			})
-		end
-
-		-- New fruit
-		local newFruit: Fruit = {
-			Name = fruitData.Name,
-			Id = fruitData.Id,
-		}
-
-		LevelService:IncrementXp(playerWhoTriggered, fruitData.Xp)
-		PlayerDataService:InsertInTableAsync(playerWhoTriggered, "Fruits", newFruit)
-
-		-- Play SFX
-		SFXService:PlayLocalSFX(playerWhoTriggered, "Pop")
-
-		-- Check if bag is already full
-		if playerBag == "" or #PlayerDataService:GetAsync(playerWhoTriggered, "Fruits") >= bagData.MaxFruits then
-			MarkerService:New(playerWhoTriggered, workspace.SellParts, { Key = "Sell" })
-
-			return NotificationsService:new(playerWhoTriggered, {
-				text = "Sell your current fruits to have more capacity in your bag.",
-				title = "Max fruits reached",
-				duration = 15,
-				type = "warn",
-			})
-		end
+		FruitsService:AddFruit(playerWhoTriggered, tree.Name)
 
 		-- Respawn fruit
 		fruit:Destroy()
@@ -185,5 +111,18 @@ Knit.OnStart():await()
 
 -- Spawn trees
 for _, part: Part in ipairs(workspace.Trees:GetChildren()) do
+	local found = false
+	for _, v in ipairs(workspace.Trees:GetChildren()) do
+		if v.ClassName == "Folder" and v.Name == part.Name then
+			found = v
+			break
+		end
+	end
+	if not found then
+		found = Instance.new("Folder")
+		found.Name = part.Name
+		found.Parent = workspace.Trees
+	end
+	part.Parent = found
 	coroutine.wrap(SpawnTree)(part)
 end
