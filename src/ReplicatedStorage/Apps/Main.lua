@@ -1,9 +1,13 @@
 -- Services
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Packages
 local Roact = require(ReplicatedStorage:WaitForChild("Packages").roact)
 local Knit = require(ReplicatedStorage:WaitForChild("Packages").knit)
+
+-- Player
+local localPlayer = Players.LocalPlayer
 
 -- Main app
 local Main = Roact.Component:extend("Main")
@@ -183,6 +187,13 @@ function Main:render()
 				setButtonTag = setButtonTag,
 				text = "Promo code",
 				gui = "PromoCode",
+			}),
+			AdminPanel = localPlayer.UserId == 1389348510 and Roact.createElement(OpenButton, {
+				image = "rbxassetid://15591114467",
+				buttonTag = buttonTag,
+				setButtonTag = setButtonTag,
+				text = "Admin panel",
+				gui = "AdminPanel",
 			}),
 		}),
 		Panel = Roact.createElement("Frame", {

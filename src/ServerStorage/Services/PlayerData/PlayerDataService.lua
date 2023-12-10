@@ -32,6 +32,10 @@ export type PlayerData = {
 	OpenUpdateLogOnStart: boolean,
 	WelcomeBackNotification: boolean,
 	RedeemedPromoCodes: {},
+	Blocked: boolean,
+	BlockDuration: number,
+	BlockReason: string,
+	BlockHistory: {},
 }
 
 export type DataOptions = {
@@ -73,6 +77,10 @@ local PlayerDataService = Knit.CreateService({
 		OpenUpdateLogOnStart = true,
 		WelcomeBackNotification = true,
 		RedeemedPromoCodes = {},
+		Blocked = 0,
+		BlockDuration = 0,
+		BlockReason = "",
+		BlockHistory = {},
 	},
 	Client = {
 		DataChanged = Knit.CreateSignal(),
@@ -84,6 +92,8 @@ local PlayerDataService = Knit.CreateService({
 })
 
 function PlayerDataService:KnitInit()
+	self.AdminServie = Knit.GetService("AdminService")
+
 	for _, player in ipairs(Players:GetPlayers()) do
 		coroutine.wrap(self.InitializedPlayer)(self, player)
 	end
@@ -133,6 +143,20 @@ function PlayerDataService:InitializePlayer(player: Player)
 			playerData = self.Template
 		else
 			playerData = self:Reconcile(self.Template, playerData)
+		end
+
+		if playerData.Blocked ~= 0 then
+			if (workspace:GetServerTimeNow() - playerData.Blocked) <= playerData.BlockDuration then
+				return player:Kick(
+					`You have been banned by admin. Time left {math.round(
+						(playerData.BlockDuration - (workspace:GetServerTimeNow() - playerData.Blocked)) * 10
+					) / 10} seconds. Reason: {playerData.BlockReason}.`
+				)
+			else
+				playerData.Blocked = 0
+				playerData.BlockDuration = 0
+				playerData.BlockReason = ""
+			end
 		end
 
 		playerData.Visits += 1

@@ -55,7 +55,7 @@ function PromoCodeController:Redeem(promoCode: string)
 	end
 	if self:DoesPromoCodeRedeemed(promoCode) then
 		return self.NotificationsController:new({
-			text = `Promo code "{promoCode}" already redeemed.`,
+			text = `Promo code "{promoCode}" has been already redeemed.`,
 			title = "Cannot redeem this promo code",
 			duration = 15,
 			type = "warn",

@@ -1,3 +1,4 @@
+local MessagingService = game:GetService("MessagingService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -9,6 +10,15 @@ local NotificationsService = Knit.CreateService({
 		new = Knit.CreateSignal(),
 	},
 })
+
+function NotificationsService:KnitInit()
+	MessagingService:SubscribeAsync("Notifications", function(data)
+		local player = Players:GetPlayerByUserId(data.Data.sendTo)
+		if player then
+			self:new(player, data.Data)
+		end
+	end)
+end
 
 function NotificationsService:new(
 	player: Player,
