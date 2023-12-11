@@ -78,8 +78,15 @@ end
 
 -- Teleport app
 local function Teleport(props)
+	local MonetizationController = Knit.GetController("MonetizationController")
 	local closeGui = props.closeGui
 	local spawnpoint = props.spawnpoint
+	local ownsGamepass, setOwnGamepass = Roact.createBinding(false)
+	MonetizationController:DoOwnGamepass(671455721)
+		:andThen(function(value)
+			setOwnGamepass(value)
+		end)
+		:catch(warn)
 	return Roact.createElement("ScreenGui", {
 		ResetOnSpawn = false,
 	}, {
@@ -88,6 +95,58 @@ local function Teleport(props)
 			title = "Teleport",
 			closeGui = closeGui,
 		}, {
+			Gamepass = Roact.createElement("Frame", {
+				ZIndex = 2,
+				BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+				BackgroundTransparency = 0.2,
+				Size = UDim2.fromScale(1, 1),
+				BorderSizePixel = 0,
+				Visible = ownsGamepass:map(function(value)
+					return not value
+				end),
+			}, {
+				Label = Roact.createElement("TextLabel", {
+					Size = UDim2.new(1, 0, 0, 135),
+					BorderSizePixel = 0,
+					BackgroundTransparency = 1,
+					Text = "Buy Teleporter Game Pass",
+					TextSize = 18,
+					TextColor3 = Color3.fromRGB(255, 255, 255),
+					Font = Enum.Font.Ubuntu,
+					ZIndex = 3,
+				}),
+				Buy = Roact.createElement("TextButton", {
+					AnchorPoint = Vector2.new(0.5, 1),
+					Position = UDim2.new(0.5, 0, 1, -50),
+					Size = UDim2.fromOffset(150, 40),
+					BackgroundColor3 = Color3.fromRGB(43, 207, 25),
+					BorderSizePixel = 0,
+					Text = "Buy!",
+					TextSize = 16,
+					TextColor3 = Color3.fromRGB(255, 255, 255),
+					Font = Enum.Font.Ubuntu,
+					ZIndex = 3,
+					[Roact.Event.Activated] = function()
+						MonetizationController:BuyGamepass(671455721)
+							:andThen(function(purchased)
+								if not purchased then
+									MonetizationController:DoOwnGamepass(671455721)
+										:andThen(function(value)
+											purchased = value
+										end)
+										:catch(warn)
+										:await()
+								end
+								setOwnGamepass(purchased)
+							end)
+							:catch(warn)
+					end,
+				}, {
+					UICorner = Roact.createElement("UICorner", {
+						CornerRadius = UDim.new(0, 5),
+					}),
+				}),
+			}),
 			Holder = Roact.createElement("ScrollingFrame", {
 				Size = UDim2.fromScale(1, 1),
 				BorderSizePixel = 0,

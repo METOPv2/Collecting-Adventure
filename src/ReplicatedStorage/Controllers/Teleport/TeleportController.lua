@@ -8,12 +8,12 @@ local Signal = require(ReplicatedStorage:WaitForChild("Packages").signal)
 -- Teleport controller
 local TeleportController = Knit.CreateController({
 	Name = "TeleportController",
-	Initializing = true,
-	Initialized = Signal.new(),
 })
 
 function TeleportController:KnitInit()
+	self.MonetizationController = Knit.GetController("MonetizationController")
 	self.TeleportService = Knit.GetService("TeleportService")
+	self.NotificationsController = Knit.GetController("NotificationsController")
 
 	self.TeleportService
 		:GetSpawnpoints()
@@ -21,15 +21,29 @@ function TeleportController:KnitInit()
 			self.Spawnpoints = spawnpoints
 		end)
 		:catch(warn)
-		:await()
-
-	self.Initializing = false
-	self.Initialized:Fire()
 end
 
 function TeleportController:Teleport(spawnpoint: string)
-	assert(spawnpoint ~= nil, "Spawnpoint is missing or nil.")
-	self.TeleportService:Teleport(spawnpoint):catch(warn)
+	assert(spawnpoint ~= nil, "Spawnpoint is missing.")
+	local ownGamepass = false
+	self.MonetizationController
+		:DoOwnGamepass(671455721)
+		:andThen(function(value)
+			ownGamepass = value
+		end)
+		:catch(warn)
+		:await()
+	if ownGamepass then
+		self.TeleportService:Teleport(spawnpoint):catch(warn)
+	else
+		self.NotificationsController:new({
+			text = "You must own a teleport game pass to be able to teleport.",
+			title = "Teleport game pass required",
+			duration = 15,
+			type = "warn",
+		})
+		self.MonetizationController:BuyGamepass(671455721):catch(warn)
+	end
 end
 
 function TeleportController:GetSpawnpoints(): {}

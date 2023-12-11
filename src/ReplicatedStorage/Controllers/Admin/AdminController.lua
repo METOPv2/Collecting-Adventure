@@ -21,7 +21,7 @@ end
 
 function AdminController:Block(data: { playerId: number, reason: string, duration: number })
 	assert(data ~= nil, "Data is missing or nil.")
-	self.AdminService:Block(data)
+	self.AdminService:Block(data):catch(warn)
 end
 
 return AdminController

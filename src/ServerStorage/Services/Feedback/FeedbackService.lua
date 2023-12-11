@@ -9,7 +9,6 @@ local Knit = require(ReplicatedStorage.Packages.knit)
 local FeedbackService = Knit.CreateService({
 	Name = "FeedbackService",
 	FeedbackSentDelayTime = 60,
-	Webhook = "https://discord.com/api/webhooks/1144875257346412574/SAO18VprUdGrJAGRfITJrKr1x2OyZ558fne1KY7F7TOU_g70Bepkx7_GWmTPEmd3-nxO",
 })
 
 function FeedbackService:KnitInit()
@@ -52,9 +51,13 @@ function FeedbackService:Send(player: Player, data: { text: string })
 		username = `{player.DisplayName}, {player.UserId}.`,
 	}
 
+	local encodedFeedbackData = HttpService:JSONEncode(feedbackData)
+
 	local success, errorMessage = pcall(function()
-		local encodedFeedbackData = HttpService:JSONEncode(feedbackData)
-		HttpService:PostAsync(self.Webhook, encodedFeedbackData)
+		return HttpService:PostAsync(
+			"https://discord.com/api/webhooks/1144875257346412574/SAO18VprUdGrJAGRfITJrKr1x2OyZ558fne1KY7F7TOU_g70Bepkx7_GWmTPEmd3-nxO",
+			encodedFeedbackData
+		)
 	end)
 
 	self.PlayerDataService:SetAsync(player, "FeedbackSentTime", workspace:GetServerTimeNow())

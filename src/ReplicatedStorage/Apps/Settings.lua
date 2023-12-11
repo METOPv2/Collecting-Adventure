@@ -20,6 +20,7 @@ local function Toggle(props)
 	local id = props.id
 	local setting = props.setting
 	local value = props.value
+	local enabled = props.enabled
 
 	local state, updateState = Roact.createBinding(value)
 
@@ -27,6 +28,7 @@ local function Toggle(props)
 		Size = UDim2.new(1, 0, 0, 30),
 		BorderSizePixel = 0,
 		BackgroundColor3 = Color3.fromRGB(48, 48, 48),
+		Visible = enabled,
 	}, {
 		Label = Roact.createElement("TextLabel", {
 			Size = UDim2.fromScale(0.5, 1),
@@ -206,30 +208,114 @@ function Slider:willUnmount()
 end
 
 local function SettingsContent()
+	local MonetizationController = Knit.GetController("MonetizationController")
 	local SettingsController = Knit.GetController("SettingsController")
-	local elements = {}
+	local _elements = {}
+	local tabs = {
+		Music = {
+			"MusicEnabled",
+			"MusicVolume",
+		},
+		SFX = {
+			"SFXEnabled",
+			"SFXVolume",
+		},
+		Notifications = {
+			"NotificationsEnabled",
+			"WelcomeBackNotification",
+		},
+		GUI = {
+			"OpenUpdateLogOnStart",
+		},
+		Passes = {
+			"CapacityPassEnabled",
+			"WalkSpeedPassEnabled",
+			"FruitPricePassEnabled",
+		},
+	}
+	local ids = {
+		CapacityPassEnabled = 175593268,
+		WalkSpeedPassEnabled = 175593072,
+		FruitPricePassEnabled = 175594858,
+	}
 
-	for setting, value in pairs(SettingsController:GetSettings()) do
-		if typeof(value) == "boolean" then
-			table.insert(
-				elements,
-				Roact.createElement(
-					Toggle,
-					{ setting = SettingsController.SettingsNames[setting], id = setting, value = value }
+	for tab, content in pairs(tabs) do
+		local tabContent = {}
+
+		for _, v in ipairs(content) do
+			if typeof(SettingsController:GetSetting(v)) == "boolean" then
+				local enabled, setEnabled = Roact.createBinding(true)
+				if ids[v] then
+					MonetizationController:DoOwnGamepass(ids[v])
+						:andThen(function(owns)
+							setEnabled(owns)
+						end)
+						:catch(warn)
+				end
+				table.insert(
+					tabContent,
+					Roact.createElement(Toggle, {
+						setting = SettingsController:GetSettingName(v),
+						id = v,
+						value = SettingsController:GetSetting(v),
+						enabled = enabled,
+					})
 				)
-			)
-		elseif typeof(value) == "number" then
-			table.insert(
-				elements,
-				Roact.createElement(
-					Slider,
-					{ setting = SettingsController.SettingsNames[setting], id = setting, value = value }
+			elseif typeof(SettingsController:GetSetting(v)) == "number" then
+				table.insert(
+					tabContent,
+					Roact.createElement(Slider, {
+						setting = SettingsController:GetSettingName(v),
+						id = v,
+						value = SettingsController:GetSetting(v),
+					})
 				)
-			)
+			end
+		end
+
+		local new = Roact.createElement("Frame", {
+			Size = UDim2.new(1, 0, 0, 30),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BorderSizePixel = 0,
+			BackgroundColor3 = Color3.fromRGB(50, 50, 50),
+		}, {
+			Label = Roact.createElement("TextLabel", {
+				Size = UDim2.new(1, 0, 0, 30),
+				BorderSizePixel = 0,
+				BackgroundTransparency = 1,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				Text = tab,
+				RichText = true,
+				TextSize = 16,
+				FontFace = Font.fromName("Ubuntu", Enum.FontWeight.Bold),
+				TextColor3 = Color3.fromRGB(255, 255, 255),
+			}, {
+				UIPadding = Roact.createElement("UIPadding", {
+					PaddingLeft = UDim.new(0, 10),
+				}),
+			}),
+			Frame = Roact.createElement("Frame", {
+				Position = UDim2.fromOffset(0, 30),
+				BorderSizePixel = 0,
+				BackgroundTransparency = 1,
+				Size = UDim2.fromScale(1, 0),
+				AutomaticSize = Enum.AutomaticSize.Y,
+			}, {
+				Content = Roact.createFragment(tabContent),
+				UIListLayout = Roact.createElement("UIListLayout", {
+					HorizontalAlignment = Enum.HorizontalAlignment.Center,
+					VerticalAlignment = Enum.VerticalAlignment.Top,
+					FillDirection = Enum.FillDirection.Vertical,
+					Padding = UDim.new(0, 1),
+				}),
+			}),
+		})
+		if new then
+			table.insert(_elements, new)
 		end
 	end
 
-	return Roact.createFragment(elements)
+	return Roact.createFragment(_elements)
 end
 
 -- Settings app
@@ -257,7 +343,7 @@ local function Settings(props)
 					FillDirection = Enum.FillDirection.Vertical,
 					HorizontalAlignment = Enum.HorizontalAlignment.Left,
 					VerticalAlignment = Enum.VerticalAlignment.Top,
-					Padding = UDim.new(0, 5),
+					Padding = UDim.new(0, 10),
 				}),
 				Content = Roact.createElement(SettingsContent),
 			}),

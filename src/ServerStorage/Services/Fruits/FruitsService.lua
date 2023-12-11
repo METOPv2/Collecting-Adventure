@@ -35,7 +35,8 @@ function FruitsService:KnitInit()
 	self.SFXService = Knit.GetService("SFXService")
 	self.GuiService = Knit.GetService("GuiService")
 	self.MarkerService = Knit.GetService("MarkerService")
-	self.NotificationsService = Knit.GetService("NotificationsService")
+	self.MonetizationService = Knit.GetService("MonetizationService")
+	self.SettingsService = Knit.GetService("SettingsService")
 end
 
 function FruitsService:KnitStart()
@@ -76,7 +77,17 @@ function FruitsService:AddFruit(player: Player, fruit: string)
 		})
 	end
 
-	if playerBag == "" or #playerFruits + 1 > bagData.MaxFruits then
+	local passEnabled = self.SettingsService:GetSetting(player, "FruitPricePassEnabled")
+	local ownsPass
+	self.MonetizationService
+		:DoOwnGamepass(player, 175593268)
+		:andThen(function(value)
+			ownsPass = value
+		end)
+		:catch(warn)
+		:await()
+
+	if playerBag == "" or #playerFruits + 1 > bagData.MaxFruits + ((ownsPass and passEnabled) and 50 or 0) then
 		self.MarkerService:New(player, workspace.SellParts, { Key = "Sell" })
 
 		return self.NotificationsService:new(player, {
@@ -140,15 +151,28 @@ function FruitsService:SellFruits(player: Player)
 
 	if #Fruits ~= 0 then
 		local fruitBucks, fruits = 0, 0
+		local ownsPass
+		local settingEnabled = self.SettingsService:GetSetting(player, "FruitPricePassEnabled")
+		self.MonetizationService
+			:DoOwnGamepass(player, 175594858)
+			:andThen(function(value)
+				ownsPass = value and self.PlayerDataService:GetAsync(player, "CapacityPassEnabled")
+			end)
+			:catch(warn)
+			:await()
 		for _, fruit in pairs(Fruits) do
 			local fruitData = FruitsDataBase[fruit.Id]
 			PlayerDataService:RemoveAsync(player, "Fruits", fruit)
-			PlayerDataService:IncrementAsync(player, "FruitBucks", fruitData.SellValue)
+			PlayerDataService:IncrementAsync(
+				player,
+				"FruitBucks",
+				fruitData.SellValue * ((ownsPass and settingEnabled) and 1.5 or 1)
+			)
 			fruitBucks += fruitData.SellValue
 			fruits += 1
 		end
 		NotificationsService:new(player, {
-			text = `You earned {fruitBucks} fruit bucks for selling {fruits} fruits.`,
+			text = `You earned {fruitBucks * ((ownsPass and settingEnabled) and 1.5 or 1)} {(ownsPass and settingEnabled) and "(+50%) " or ""}fruit bucks for selling {fruits} fruits.`,
 			title = "Fruits sold",
 			duration = 10,
 			type = "sell",

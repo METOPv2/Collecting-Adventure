@@ -28,7 +28,7 @@ function FeedbackController:Send(data: { text: string })
 
 	if workspace:GetServerTimeNow() - self.FeedbackSentTime < 60 then
 		return self.NotificationsController:new({
-			text = `You can send another feedback in {math.round(
+			text = `You can send another feedback after {math.round(
 				(60 - (workspace:GetServerTimeNow() - self.FeedbackSentTime)) * 10
 			) / 10} seconds.`,
 			title = "Too fast",

@@ -14,6 +14,9 @@ type Settings = {
 	SFXVolume: number,
 	OpenUpdateLogOnStart: boolean,
 	WelcomeBackNotification: boolean,
+	CapacityPassEnabled: boolean,
+	WalkSpeedPassEnabled: boolean,
+	FruitPricePassEnabled: boolean,
 }
 
 -- Settings controller
@@ -35,6 +38,9 @@ function SettingsController:KnitInit()
 		SFXVolume = "SFX Volume",
 		OpenUpdateLogOnStart = "Open Update Log on Start",
 		WelcomeBackNotification = `"Welcome Back" Notification`,
+		CapacityPassEnabled = "Capacity pass enabled",
+		WalkSpeedPassEnabled = "Walk speed pass enabled",
+		FruitPricePassEnabled = "Fruit price pass enabled",
 	}
 
 	self.SettingsService
@@ -76,6 +82,10 @@ function SettingsController:KnitInit()
 
 	self.Initializing = false
 	self.Initialized:Fire()
+end
+
+function SettingsController:GetSettingName(setting: string): string
+	return self.SettingsNames[setting]
 end
 
 function SettingsController:SetSetting(key: string, value: any)

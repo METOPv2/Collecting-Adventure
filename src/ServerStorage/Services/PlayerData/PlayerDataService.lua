@@ -36,6 +36,9 @@ export type PlayerData = {
 	BlockDuration: number,
 	BlockReason: string,
 	BlockHistory: {},
+	CapacityPassEnabled: boolean,
+	WalkSpeedPassEnabled: boolean,
+	FruitPricePassEnabled: boolean,
 }
 
 export type DataOptions = {
@@ -55,6 +58,9 @@ local PlayerDataService = Knit.CreateService({
 		"SFXVolume",
 		"TutorialCompleted",
 		"WelcomeBackNotification",
+		"CapacityPassEnabled",
+		"WalkSpeedPassEnabled",
+		"FruitPricePassEnabled",
 	},
 	Template = {
 		Fruits = {},
@@ -81,6 +87,9 @@ local PlayerDataService = Knit.CreateService({
 		BlockDuration = 0,
 		BlockReason = "",
 		BlockHistory = {},
+		CapacityPassEnabled = true,
+		WalkSpeedPassEnabled = true,
+		FruitPricePassEnabled = true,
 	},
 	Client = {
 		DataChanged = Knit.CreateSignal(),
@@ -99,7 +108,7 @@ function PlayerDataService:KnitInit()
 	end
 
 	Players.PlayerAdded:Connect(function(player)
-		self:InitializePlayer(player)
+		self:InitializePlayer(player.UserId)
 	end)
 
 	Players.PlayerRemoving:Connect(function(player)
@@ -130,13 +139,11 @@ function PlayerDataService:Reconcile(template: { [any]: any }, data: { [any]: an
 	return data
 end
 
-function PlayerDataService:InitializePlayer(player: Player)
-	assert(player ~= nil, "Player is missing or nil.")
-	assert(typeof(player) == "Instance", `Player type must be Instance. Got {typeof(player)}.`)
-	assert(player.ClassName == "Player", `Player class name must be Player. Got {player.ClassName}.`)
+function PlayerDataService:InitializePlayer(playerId: number)
+	assert(playerId ~= nil, "Player id is missing.")
 
-	local playerId = tostring(player.UserId)
-	local success: boolean, playerData: PlayerData | string = pcall(PlayerDataBase.GetAsync, PlayerDataBase, playerId)
+	local success: boolean, playerData: PlayerData | string =
+		pcall(PlayerDataBase.GetAsync, PlayerDataBase, tostring(playerId))
 
 	if success then
 		if playerData == nil then
@@ -147,11 +154,13 @@ function PlayerDataService:InitializePlayer(player: Player)
 
 		if playerData.Blocked ~= 0 then
 			if (workspace:GetServerTimeNow() - playerData.Blocked) <= playerData.BlockDuration then
-				return player:Kick(
-					`You have been banned by admin. Time left {math.round(
-						(playerData.BlockDuration - (workspace:GetServerTimeNow() - playerData.Blocked)) * 10
-					) / 10} seconds. Reason: {playerData.BlockReason}.`
-				)
+				local player = Players:GetPlayerByUserId(playerId)
+				return player
+					and player:Kick(
+						`You have been banned by admin. Time left {math.round(
+							(playerData.BlockDuration - (workspace:GetServerTimeNow() - playerData.Blocked)) * 10
+						) / 10} seconds. Reason: {playerData.BlockReason}.`
+					)
 			else
 				playerData.Blocked = 0
 				playerData.BlockDuration = 0
@@ -162,18 +171,16 @@ function PlayerDataService:InitializePlayer(player: Player)
 		playerData.Visits += 1
 
 		self.SessionDataBase[playerId] = playerData
-		self.InitializedPlayer:Fire(player)
+		self.InitializedPlayer:Fire(playerId)
 	else
 		warn(`Failed to get data. Error: {playerData}.`)
 	end
 end
 
-function PlayerDataService:DeinitializePlayer(player: Player)
-	assert(player ~= nil, "Player is missing or nil.")
-	assert(typeof(player) == "Instance", `Player type must be Instance. Got {typeof(player)}.`)
-	assert(player.ClassName == "Player", `Player class name must be Player. Got {player.ClassName}.`)
+function PlayerDataService:DeinitializePlayer(player: Player | number)
+	assert(player ~= nil, "Player is missing.")
 
-	local playerId = tostring(player.UserId)
+	local playerId = typeof(player) == "Instance" and player.UserId or player
 	local playerData: PlayerData = self.SessionDataBase[playerId]
 
 	if playerData == nil then
@@ -183,7 +190,7 @@ function PlayerDataService:DeinitializePlayer(player: Player)
 	local success: boolean, errorMessage: string?
 
 	if self.SaveOnStudio then
-		success, errorMessage = pcall(PlayerDataBase.SetAsync, PlayerDataBase, playerId, playerData)
+		success, errorMessage = pcall(PlayerDataBase.SetAsync, PlayerDataBase, tostring(playerId), playerData)
 	else
 		success = true
 	end
@@ -197,12 +204,14 @@ function PlayerDataService:DeinitializePlayer(player: Player)
 	end
 end
 
-function PlayerDataService:GetPlayerData(player: Player): PlayerData?
-	assert(player ~= nil, "Player is missing or nil.")
-	assert(typeof(player) == "Instance", `Player type must be Instance. Got {typeof(player)}.`)
-	assert(player.ClassName == "Player", `Player class name must be Player. Got {player.ClassName}.`)
+function PlayerDataService:PlayerDataInServer(playerId: number): boolean
+	return self.SessionDataBase[playerId] ~= nil
+end
 
-	local playerId = tostring(player.UserId)
+function PlayerDataService:GetPlayerData(player: Player | number): PlayerData?
+	assert(player ~= nil, "Player is missing or nil.")
+
+	local playerId = typeof(player) == "Instance" and player.UserId or player
 	local playerData = self.SessionDataBase[playerId]
 
 	if playerData == nil then
@@ -229,11 +238,9 @@ end
 
 function PlayerDataService:GetAsync(player: Player, key: any): any?
 	assert(player ~= nil, "Player is missing or nil.")
-	assert(typeof(player) == "Instance", `Player type must be Instance. Got {typeof(player)}.`)
-	assert(player.ClassName == "Player", `Player class name must be Player. Got {player.ClassName}.`)
 	assert(key ~= nil, "Key is missing or nil.")
 
-	local playerId = tostring(player.UserId)
+	local playerId = typeof(player) == "Instance" and player.UserId or player
 	local playerData = self.SessionDataBase[playerId]
 
 	if playerData == nil then
@@ -254,8 +261,6 @@ end
 
 function PlayerDataService:SetAsync(player: Player, key: any, value: any, options: DataOptions?)
 	assert(player ~= nil, "Player is missing or nil.")
-	assert(typeof(player) == "Instance", `Player type must be Instance. Got {typeof(player)}.`)
-	assert(player.ClassName == "Player", `Player class name must be Player. Got {player.ClassName}.`)
 	assert(key ~= nil, "Key is missing or nil.")
 	assert(value ~= nil, "Value is missing or nil.")
 	assert(value == value, `Value might be nan. Value: "{value}".`)
@@ -263,7 +268,7 @@ function PlayerDataService:SetAsync(player: Player, key: any, value: any, option
 	local valueType = typeof(value)
 	assert(dataType == valueType, `Got wrong data type. Must be "{dataType}", got "{valueType}".`)
 
-	local playerId = tostring(player.UserId)
+	local playerId = typeof(player) == "Instance" and player.UserId or player
 
 	if self.SessionDataBase[playerId] == nil then
 		repeat
@@ -277,7 +282,9 @@ function PlayerDataService:SetAsync(player: Player, key: any, value: any, option
 	self.DataChanged:Fire(player, key, self.SessionDataBase[playerId][key], previousValue)
 
 	if not table.find(self.BlockedDataForClient, key) or (options and not options.HiddenFromClient) then
-		self.Client.DataChanged:Fire(player, key, self.SessionDataBase[playerId][key], previousValue)
+		if typeof(player) == "Instance" then
+			self.Client.DataChanged:Fire(player, key, self.SessionDataBase[playerId][key], previousValue)
+		end
 	end
 end
 
@@ -292,8 +299,6 @@ end
 
 function PlayerDataService:IncrementAsync(player: Player, key: any, value: number, options: DataOptions?)
 	assert(player ~= nil, "Player is missing or nil.")
-	assert(typeof(player) == "Instance", `Player type must be Instance. Got {typeof(player)}.`)
-	assert(player.ClassName == "Player", `Player class name must be Player. Got {player.ClassName}.`)
 	assert(key ~= nil, "Key is missing or nil.")
 	assert(value ~= nil, "Value is missing or nil.")
 	assert(value == value, `Value might be nan. Value: "{value}".`)
@@ -302,7 +307,7 @@ function PlayerDataService:IncrementAsync(player: Player, key: any, value: numbe
 	assert(valueType == "number", `Value must be number. Got "{valueType}".`)
 	assert(dataType == "number", `Cannot increment "{dataType}" type. Only number type can be incremented.`)
 
-	local playerId = tostring(player.UserId)
+	local playerId = typeof(player) == "Instance" and player.UserId or player
 	local previousValue = self.SessionDataBase[playerId][key]
 
 	if self.SessionDataBase[playerId] == nil then
@@ -315,7 +320,9 @@ function PlayerDataService:IncrementAsync(player: Player, key: any, value: numbe
 	self.DataChanged:Fire(player, key, self.SessionDataBase[playerId][key], previousValue)
 
 	if not table.find(self.BlockedDataForClient, key) or (options and not options.HiddenFromClient) then
-		self.Client.DataChanged:Fire(player, key, self.SessionDataBase[playerId][key], previousValue)
+		if typeof(player) == "Instance" then
+			self.Client.DataChanged:Fire(player, key, self.SessionDataBase[playerId][key], previousValue)
+		end
 	end
 end
 
@@ -335,8 +342,6 @@ function PlayerDataService:InsertInTableAsync(
 	options: DataOptions?
 )
 	assert(player ~= nil, "Player is missing or nil.")
-	assert(typeof(player) == "Instance", `Player type must be Instance. Got {typeof(player)}.`)
-	assert(player.ClassName == "Player", `Player class name must be Player. Got {player.ClassName}.`)
 	assert(key ~= nil, "Key is missing or nil.")
 	assert(value ~= nil, "Value is missing or nil.")
 	assert(value == value, `Value may be nan. Value: "{value}".`)
@@ -344,7 +349,7 @@ function PlayerDataService:InsertInTableAsync(
 	local dataType = typeof(dataInkey)
 	assert(dataType == "table", `Cannot insert table in "{dataType}" data.`)
 
-	local playerId = tostring(player.UserId)
+	local playerId = typeof(player) == "Instance" and player.UserId or player
 
 	if self.SessionDataBase[playerId] == nil then
 		repeat
@@ -358,7 +363,9 @@ function PlayerDataService:InsertInTableAsync(
 	self.DataChanged:Fire(player, key, self:GetAsync(player, key), previousValue)
 
 	if not table.find(self.BlockedDataForClient, key) or (options and not options.HiddenFromClient) then
-		self.Client.DataChanged:Fire(player, key, self:GetAsync(player, key), previousValue)
+		if typeof(player) == "Instance" then
+			self.Client.DataChanged:Fire(player, key, self:GetAsync(player, key), previousValue)
+		end
 	end
 end
 
@@ -373,8 +380,6 @@ end
 
 function PlayerDataService:RemoveAsync(player: Player, key: any, value: any?, options: DataOptions?)
 	assert(player, "Player is missing or nil.")
-	assert(typeof(player) == "Instance", `Player type must be Instance. Got {typeof(player)}.`)
-	assert(player.ClassName == "Player", `Player class name must be Player. Got {player.ClassName}.`)
 	assert(key, "Key is missing or nil.")
 	assert(value, "Table is missing or nil.")
 	assert(value == value, `Table may be nan. Table: "{value}".`)
@@ -383,7 +388,7 @@ function PlayerDataService:RemoveAsync(player: Player, key: any, value: any?, op
 	local dataType = typeof(dataInkey)
 	assert(dataType == "table", `Cannot remove data from {dataType}. Table only.`)
 
-	local playerId = tostring(player.UserId)
+	local playerId = typeof(player) == "Instance" and player.UserId or player
 
 	if self.SessionDataBase[playerId] == nil then
 		repeat
@@ -412,7 +417,9 @@ function PlayerDataService:RemoveAsync(player: Player, key: any, value: any?, op
 				self.DataChanged:Fire(player, key, self:GetAsync(player, key), oldValue)
 
 				if not table.find(self.BlockedDataForClient, key) or (options and not options.HiddenFromClient) then
-					self.Client.DataChanged:Fire(player, key, self:GetAsync(player, key), oldValue)
+					if typeof(player) == "Instance" then
+						self.Client.DataChanged:Fire(player, key, self:GetAsync(player, key), oldValue)
+					end
 				end
 
 				break
@@ -424,7 +431,9 @@ function PlayerDataService:RemoveAsync(player: Player, key: any, value: any?, op
 			self.DataChanged:Fire(player, key, self:GetAsync(player, key), oldValue)
 
 			if not table.find(self.BlockedDataForClient, key) or (options and not options.HiddenFromClient) then
-				self.Client.DataChanged:Fire(player, key, self:GetAsync(player, key), oldValue)
+				if typeof(player) == "Instance" then
+					self.Client.DataChanged:Fire(player, key, self:GetAsync(player, key), oldValue)
+				end
 			end
 		end
 	end

@@ -51,6 +51,9 @@ local function Tab(props)
 				if text == "Fruit Bucks" then
 					return value == text and Color3.fromRGB(55, 231, 76) or Color3.fromRGB(28, 130, 40)
 				end
+				if text == "Game Passes" then
+					return value == text and Color3.fromRGB(25, 154, 209) or Color3.fromRGB(22, 110, 148)
+				end
 
 				return value == text and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(167, 167, 167)
 			end),
@@ -64,6 +67,9 @@ local function Tab(props)
 			TextColor3 = activeTab:map(function(value)
 				if text == "Fruit Bucks" then
 					return value == text and Color3.fromRGB(55, 231, 76) or Color3.fromRGB(28, 130, 40)
+				end
+				if text == "Game Passes" then
+					return value == text and Color3.fromRGB(25, 154, 209) or Color3.fromRGB(22, 110, 148)
 				end
 
 				return value == text and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(167, 167, 167)
@@ -94,6 +100,15 @@ local function Tabs(props)
 		elements,
 		Roact.createElement(Tab, {
 			text = "Fruit Bucks",
+			activeTab = activeTab,
+			changeActiveTab = changeActiveTab,
+		})
+	)
+
+	table.insert(
+		elements,
+		Roact.createElement(Tab, {
+			text = "Game Passes",
 			activeTab = activeTab,
 			changeActiveTab = changeActiveTab,
 		})
@@ -287,39 +302,20 @@ local function FruitBucksProduct(props)
 
 	local product = props.product
 
-	return Roact.createElement("Frame", {
+	return Roact.createElement("TextButton", {
 		Size = UDim2.fromOffset(50, 50),
 		BorderSizePixel = 0,
 		BackgroundColor3 = Color3.fromRGB(46, 46, 46),
-	}, {
-		UIStroke = Roact.createElement("UIStroke", {
-			Transparency = 0.8,
-		}),
-		UICorner = Roact.createElement("UICorner", {
-			CornerRadius = UDim.new(0, 5),
-		}),
-		Buy = Roact.createElement("TextButton", {
-			Size = UDim2.fromScale(1, 1),
-			BorderSizePixel = 0,
-			BackgroundTransparency = 1,
-			Text = "",
-			ZIndex = 2,
-			[Roact.Event.Activated] = function()
-				MonetizationController:BuyProduct(product.ProductId)
-			end,
-			[Roact.Event.MouseEnter] = function()
-				SFXController:PlaySFX("MouseEnter")
-			end,
-		}),
-		Amount = Roact.createElement("TextLabel", {
-			Size = UDim2.fromScale(1, 1),
-			BorderSizePixel = 0,
-			BackgroundTransparency = 1,
-			Text = product.FruitBucks,
-			TextSize = 14,
-			TextColor3 = Color3.fromRGB(255, 255, 255),
-			Font = Enum.Font.Ubuntu,
-		}),
+		Text = product.FruitBucks,
+		TextSize = 14,
+		TextColor3 = Color3.fromRGB(255, 255, 255),
+		Font = Enum.Font.Ubuntu,
+		[Roact.Event.Activated] = function()
+			MonetizationController:BuyProduct(product.ProductId)
+		end,
+		[Roact.Event.MouseEnter] = function()
+			SFXController:PlaySFX("MouseEnter")
+		end,
 	})
 end
 
@@ -331,6 +327,45 @@ local function FruitBucksProducts()
 	end
 
 	return Roact.createFragment(elements)
+end
+
+local function GamePasses()
+	local SFXController = Knit.GetController("SFXController")
+	local MonetizationController = Knit.GetController("MonetizationController")
+
+	local _elements = {}
+	local passes = {
+		[671455721] = "rbxassetid://15609981187",
+		[175593072] = "rbxassetid://15609980966",
+		[175593268] = "rbxassetid://15609981298",
+		[175594858] = "rbxassetid://15609981423",
+	}
+
+	for id, image in pairs(passes) do
+		local new = Roact.createElement("ImageButton", {
+			Size = UDim2.fromOffset(50, 50),
+			BorderSizePixel = 0,
+			BackgroundColor3 = Color3.fromRGB(46, 46, 46),
+			Image = image,
+			ZIndex = 2,
+			[Roact.Event.Activated] = function()
+				MonetizationController:BuyGamepass(id):catch(warn)
+			end,
+			[Roact.Event.MouseEnter] = function()
+				SFXController:PlaySFX("MouseEnter")
+			end,
+		}, {
+			UIStroke = Roact.createElement("UIStroke", {
+				Transparency = 0.8,
+			}),
+			UICorner = Roact.createElement("UICorner", {
+				CornerRadius = UDim.new(0, 5),
+			}),
+		})
+		table.insert(_elements, new)
+	end
+
+	return Roact.createFragment(_elements)
 end
 
 -- Shop app
@@ -408,6 +443,28 @@ function Shop:render()
 						SortOrder = Enum.SortOrder.Name,
 					}),
 					Products = Roact.createElement(FruitBucksProducts),
+				}),
+				GamePasses = Roact.createElement("ScrollingFrame", {
+					Size = UDim2.fromScale(1, 1),
+					BackgroundTransparency = 1,
+					BorderSizePixel = 0,
+					ScrollBarThickness = 5,
+					ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255),
+					AutomaticCanvasSize = Enum.AutomaticSize.Y,
+					ScrollingDirection = Enum.ScrollingDirection.Y,
+					CanvasSize = UDim2.fromOffset(0, 0),
+					ClipsDescendants = false,
+					Visible = activeTab:map(function(tab)
+						return tab == "Game Passes"
+					end),
+				}, {
+					UIListLayout = Roact.createElement("UIListLayout", {
+						Wraps = true,
+						FillDirection = Enum.FillDirection.Horizontal,
+						Padding = UDim.new(0, 5),
+						SortOrder = Enum.SortOrder.Name,
+					}),
+					Passes = Roact.createElement(GamePasses),
 				}),
 				UIPadding = Roact.createElement("UIPadding", {
 					PaddingLeft = UDim.new(0, 10),

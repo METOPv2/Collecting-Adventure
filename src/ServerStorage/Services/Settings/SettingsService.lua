@@ -1,4 +1,5 @@
 -- Services
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Packages
@@ -14,6 +15,9 @@ type Settings = {
 	SFXVolume: number,
 	OpenUpdateLogOnStart: boolean,
 	WelcomeBackNotification: boolean,
+	CapacityPassEnabled: boolean,
+	WalkSpeedPassEnabled: boolean,
+	FruitPricePassEnabled: boolean,
 }
 
 -- Settings service
@@ -27,15 +31,39 @@ local SettingsService = Knit.CreateService({
 		"SFXVolume",
 		"OpenUpdateLogOnStart",
 		"WelcomeBackNotification",
+		"CapacityPassEnabled",
+		"WalkSpeedPassEnabled",
+		"FruitPricePassEnabled",
 	},
 	Client = {
 		SettingChanged = Knit.CreateSignal(),
 	},
 	SettingChanged = Signal.new(),
+	PlayerSettings = {},
 })
 
 function SettingsService:KnitInit()
 	self.PlayerDataService = Knit.GetService("PlayerDataService")
+
+	for _, player in ipairs(Players:GetPlayers()) do
+		coroutine.wrap(function()
+			self.PlayerSettings[player.UserId] = {}
+			for _, setting in ipairs(self.Settings) do
+				self.PlayerSettings[player.UserId][setting] = self.PlayerDataService:GetAsync(player, setting)
+			end
+		end)()
+	end
+
+	Players.PlayerAdded:Connect(function(player)
+		self.PlayerSettings[player.UserId] = {}
+		for _, setting in ipairs(self.Settings) do
+			self.PlayerSettings[player.UserId][setting] = self.PlayerDataService:GetAsync(player, setting)
+		end
+	end)
+
+	Players.PlayerRemoving:Connect(function(player)
+		self.PlayerSettings[player.UserId] = nil
+	end)
 end
 
 function SettingsService:SetSetting(player: Player, key: string, value: any)
@@ -43,6 +71,7 @@ function SettingsService:SetSetting(player: Player, key: string, value: any)
 	assert(key ~= nil, "Player is missing or nil.")
 	assert(value ~= nil, "Value is missing or nil.")
 
+	self.PlayerSettings[player.UserId][key] = value
 	self.PlayerDataService:SetAsync(player, key, value)
 	self.SettingChanged:Fire(player, key, value)
 	self.Client.SettingChanged:Fire(player, key, value)
@@ -53,11 +82,11 @@ function SettingsService.Client:SetSetting(player: Player, key: string, value: a
 end
 
 function SettingsService:GetSettings(player: Player): Settings
-	local playerSettings = {}
-	for _, setting in ipairs(self.Settings) do
-		playerSettings[setting] = self.PlayerDataService:GetAsync(player, setting)
-	end
-	return playerSettings
+	return self.PlayerSettings[player.UserId]
+end
+
+function SettingsService:GetSetting(player: Player, setting: string): any
+	return self.PlayerSettings[player.UserId][setting]
 end
 
 function SettingsService.Client:GetSettings(player: Player): Settings

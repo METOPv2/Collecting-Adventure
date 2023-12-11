@@ -16,6 +16,7 @@ local TeleportService = Knit.CreateService({
 function TeleportService:KnitInit()
 	self.PlayerDataService = Knit.GetService("PlayerDataService")
 	self.NotificationsService = Knit.GetService("NotificationsService")
+	self.MonetizationService = Knit.GetService("MonetizationService")
 end
 
 function TeleportService:KnitStart()
@@ -53,11 +54,11 @@ function TeleportService:InitializePlayer(player: Player)
 	local connections = {}
 
 	if player.Character then
-		self:Teleport(player, self.PlayerDataService:GetAsync(player, "Spawnpoint"))
+		self:Teleport(player, self.PlayerDataService:GetAsync(player, "Spawnpoint"), { IgnoreGamepass = true })
 	end
 
 	connections[1] = player.CharacterAdded:Connect(function()
-		self:Teleport(player, self.PlayerDataService:GetAsync(player, "Spawnpoint"))
+		self:Teleport(player, self.PlayerDataService:GetAsync(player, "Spawnpoint"), { IgnoreGamepass = true })
 	end)
 
 	self.InitializedPlayers[player.UserId] = { connections = connections }
@@ -73,9 +74,29 @@ function TeleportService:DeinitializePlayer(player: Player)
 	end
 end
 
-function TeleportService:Teleport(player: Player, spawnpoint: string)
-	assert(player ~= nil, "Player is missing or nil.")
-	assert(spawnpoint ~= nil, "Spawnpoint is missing or nil.")
+function TeleportService:Teleport(player: Player, spawnpoint: string, options: { IgnoreGamepass: boolean }?)
+	assert(player ~= nil, "Player is missing.")
+	assert(spawnpoint ~= nil, "Spawnpoint is missing.")
+
+	if not options or not options.IgnoreGamepass then
+		local ownsGamepass = false
+		self.MonetizationService
+			:DoOwnGamepass(player, 671455721)
+			:andThen(function(value)
+				ownsGamepass = value
+			end)
+			:catch(warn)
+			:await()
+		if not ownsGamepass then
+			self.NotificationsService:new(player, {
+				text = "You must own a teleport game pass to be able to teleport.",
+				title = "Teleport game pass required",
+				duration = 15,
+				type = "warn",
+			})
+			return self.MonetizationService:BuyGamepass(player, 671455721)
+		end
+	end
 
 	if not player.Character then
 		player.CharacterAdded:Wait()
