@@ -12,11 +12,73 @@ local bagsAssets = ReplicatedStorage:WaitForChild("Assets").Bags
 -- Components
 local WindowComponent = require(ReplicatedStorage:WaitForChild("Source").Components.Window)
 
+local function FruitInfo(props)
+	local fruit = props.fruit
+	local hovering = props.hovering
+	local _elements = {}
+	local whiteList = { "Name", "Harvested" }
+
+	local index = 0
+	for key, value in pairs(fruit) do
+		index += 1
+		if not table.find(whiteList, key) then
+			continue
+		end
+		local valueBinding, setValue = Roact.createBinding(value)
+		if key == "Harvested" then
+			setValue(`{math.round(workspace:GetServerTimeNow() - value)} s. ago`)
+		end
+		local new = Roact.createElement("TextLabel", {
+			AutomaticSize = Enum.AutomaticSize.X,
+			Size = UDim2.fromOffset(0, 20),
+			BackgroundColor3 = (index % 2 == 0 and Color3.fromRGB(39, 39, 39) or Color3.fromRGB(104, 104, 104)),
+			BorderSizePixel = 0,
+			Text = valueBinding:map(function(text)
+				return `{key}: {text}`
+			end),
+			TextSize = 12,
+			TextColor3 = Color3.fromRGB(255, 255, 255),
+			Font = Enum.Font.Ubuntu,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Visible = hovering:map(function(enabled)
+				if enabled then
+					if key == "Harvested" then
+						coroutine.wrap(function()
+							while hovering:getValue() do
+								setValue(`{math.round(workspace:GetServerTimeNow() - value)} s. ago`)
+								task.wait()
+							end
+						end)()
+					else
+						setValue(`value`)
+					end
+				end
+				return enabled
+			end),
+			ZIndex = 3,
+		}, {
+			UIPadding = Roact.createElement("UIPadding", {
+				PaddingLeft = UDim.new(0, 5),
+				PaddingRight = UDim.new(0, 5),
+			}),
+			UISizeConstraint = Roact.createElement("UISizeConstraint", {
+				MinSize = Vector2.new(75, 0),
+			}),
+		})
+		table.insert(_elements, new)
+	end
+
+	return Roact.createFragment(_elements)
+end
+
 local function Fruit(props)
 	local cameraRef = Roact.createRef()
-	local model: Model = fruitsAssets:FindFirstChild(props.fruit.Name):Clone()
+	local fruit: {} = props.fruit
+	local model: Model = fruitsAssets:FindFirstChild(fruit.Name):Clone()
 	local size: Vector3 = model:GetExtentsSize()
 	local pivot: CFrame = model:GetPivot()
+
+	local hovering, setHovering = Roact.createBinding(false)
 
 	return Roact.createElement("Frame", {
 		BackgroundColor3 = Color3.fromRGB(46, 46, 46),
@@ -35,6 +97,13 @@ local function Fruit(props)
 			BackgroundTransparency = 1,
 			CurrentCamera = cameraRef,
 			LightColor = Color3.fromRGB(255, 255, 255),
+			ZIndex = 2,
+			[Roact.Event.MouseEnter] = function()
+				setHovering(true)
+			end,
+			[Roact.Event.MouseLeave] = function()
+				setHovering(false)
+			end,
 		}, {
 			Camera = Roact.createElement("Camera", {
 				CFrame = CFrame.lookAt(pivot.Position + size, pivot.Position),
@@ -45,6 +114,20 @@ local function Fruit(props)
 					model.Parent = ref
 				end,
 			}),
+		}),
+		Info = Roact.createElement("Frame", {
+			AnchorPoint = Vector2.new(0, 1),
+			BorderSizePixel = 0,
+			AutomaticSize = Enum.AutomaticSize.XY,
+			BackgroundTransparency = 1,
+		}, {
+			UIListLayout = Roact.createElement("UIListLayout", {
+				HorizontalAlignment = Enum.HorizontalAlignment.Left,
+				VerticalAlignment = Enum.VerticalAlignment.Bottom,
+				FillDirection = Enum.FillDirection.Vertical,
+				SortOrder = Enum.SortOrder.Name,
+			}),
+			FruitInfo = Roact.createElement(FruitInfo, { fruit = fruit, hovering = hovering }),
 		}),
 	})
 end
@@ -215,6 +298,7 @@ local function Holder(props)
 			AutomaticCanvasSize = Enum.AutomaticSize.Y,
 			ScrollingDirection = Enum.ScrollingDirection.Y,
 			CanvasSize = UDim2.fromOffset(0, 0),
+			ClipsDescendants = false,
 		}, {
 			UIPadding = Roact.createElement("UIPadding", {
 				PaddingBottom = UDim.new(0, 1),

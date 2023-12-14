@@ -17,8 +17,7 @@ local function Content(props)
 			Roact.createElement("TextLabel", {
 				Size = UDim2.new(1, 0, 0, 20),
 				BorderSizePixel = 0,
-				BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-				BackgroundTransparency = i % 2 == 0 and 0.9 or 1,
+				BackgroundColor3 = i % 2 == 0 and Color3.fromRGB(48, 48, 48) or Color3.fromRGB(75, 75, 75),
 				Text = "- " .. v,
 				TextSize = 12,
 				TextColor3 = Color3.fromRGB(185, 185, 185),

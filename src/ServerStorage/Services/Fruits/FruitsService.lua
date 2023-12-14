@@ -14,6 +14,8 @@ local FruitsDataBase = require(ServerStorage.Source.DataBases.Fruits)
 -- Types
 type Fruit = {
 	Name: string,
+	Id: string,
+	Harvested: number,
 }
 
 -- Fruit service
@@ -113,6 +115,7 @@ function FruitsService:AddFruit(player: Player, fruit: string)
 	local newFruit: Fruit = {
 		Name = fruitData.Name,
 		Id = fruitData.Id,
+		Harvested = workspace:GetServerTimeNow(),
 	}
 
 	self.LevelService:IncrementXp(player, fruitData.Xp)
