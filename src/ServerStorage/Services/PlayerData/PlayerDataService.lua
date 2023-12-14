@@ -208,10 +208,7 @@ function PlayerDataService:PlayerDataInServer(playerId: number): boolean
 	return self.SessionDataBase[playerId] ~= nil
 end
 
-function PlayerDataService:GetPlayerData(player: Player | number): PlayerData?
-	assert(player ~= nil, "Player is missing or nil.")
-
-	local playerId = typeof(player) == "Instance" and player.UserId or player
+function PlayerDataService:GetPlayerData(playerId: number): PlayerData
 	local playerData = self.SessionDataBase[playerId]
 
 	if playerData == nil then
@@ -224,8 +221,8 @@ function PlayerDataService:GetPlayerData(player: Player | number): PlayerData?
 	return playerData
 end
 
-function PlayerDataService.Client:GetPlayerData(player: Player): PlayerData?
-	local playerData = self.Server:GetPlayerData(player)
+function PlayerDataService.Client:GetPlayerData(player: Player, playerId: number?): PlayerData
+	local playerData = self.Server:GetPlayerData((playerId or player.UserId))
 
 	for key, _ in pairs(playerData) do
 		if table.find(self.Server.BlockedDataForClient, key) then
@@ -283,7 +280,7 @@ function PlayerDataService:SetAsync(player: Player, key: any, value: any, option
 
 	if not table.find(self.BlockedDataForClient, key) or (options and not options.HiddenFromClient) then
 		if typeof(player) == "Instance" then
-			self.Client.DataChanged:Fire(player, key, self.SessionDataBase[playerId][key], previousValue)
+			self.Client.DataChanged:FireAll(player, key, self.SessionDataBase[playerId][key], previousValue)
 		end
 	end
 end
@@ -321,7 +318,7 @@ function PlayerDataService:IncrementAsync(player: Player, key: any, value: numbe
 
 	if not table.find(self.BlockedDataForClient, key) or (options and not options.HiddenFromClient) then
 		if typeof(player) == "Instance" then
-			self.Client.DataChanged:Fire(player, key, self.SessionDataBase[playerId][key], previousValue)
+			self.Client.DataChanged:FireAll(player, key, self.SessionDataBase[playerId][key], previousValue)
 		end
 	end
 end
@@ -364,7 +361,7 @@ function PlayerDataService:InsertInTableAsync(
 
 	if not table.find(self.BlockedDataForClient, key) or (options and not options.HiddenFromClient) then
 		if typeof(player) == "Instance" then
-			self.Client.DataChanged:Fire(player, key, self:GetAsync(player, key), previousValue)
+			self.Client.DataChanged:FireAll(player, key, self:GetAsync(player, key), previousValue)
 		end
 	end
 end
@@ -418,7 +415,7 @@ function PlayerDataService:RemoveAsync(player: Player, key: any, value: any?, op
 
 				if not table.find(self.BlockedDataForClient, key) or (options and not options.HiddenFromClient) then
 					if typeof(player) == "Instance" then
-						self.Client.DataChanged:Fire(player, key, self:GetAsync(player, key), oldValue)
+						self.Client.DataChanged:FireAll(player, key, self:GetAsync(player, key), oldValue)
 					end
 				end
 
@@ -432,7 +429,7 @@ function PlayerDataService:RemoveAsync(player: Player, key: any, value: any?, op
 
 			if not table.find(self.BlockedDataForClient, key) or (options and not options.HiddenFromClient) then
 				if typeof(player) == "Instance" then
-					self.Client.DataChanged:Fire(player, key, self:GetAsync(player, key), oldValue)
+					self.Client.DataChanged:FireAll(player, key, self:GetAsync(player, key), oldValue)
 				end
 			end
 		end

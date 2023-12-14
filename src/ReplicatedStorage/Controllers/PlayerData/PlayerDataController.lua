@@ -1,15 +1,21 @@
 -- Services
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Packages
 local Knit = require(ReplicatedStorage:WaitForChild("Packages").knit)
 local Signal = require(ReplicatedStorage:WaitForChild("Packages").signal)
 
+-- Player
+local localPlayer = Players.LocalPlayer
+
 -- Player data controller
 local PlayerDataController = Knit.CreateController({
 	Name = "PlayerDataController",
 	DataChanged = Signal.new(),
+	NotLocalDataChanged = Signal.new(),
 	Initialized = Signal.new(),
+	Initializing = true,
 })
 
 function PlayerDataController:KnitInit()
@@ -20,20 +26,42 @@ function PlayerDataController:KnitInit()
 		:andThen(function(playerData)
 			self.MyData = playerData
 			self.Initialized:Fire()
-			self.PlayerDataService.DataChanged:Connect(function(key: any, value: any, oldValue: any)
-				self.MyData[key] = value
-				self.DataChanged:Fire(key, value, oldValue)
+			self.PlayerDataService.DataChanged:Connect(function(player: Player, key: any, value: any, oldValue: any)
+				if player == localPlayer then
+					self.MyData[key] = value
+					self.DataChanged:Fire(key, value, oldValue)
+				else
+					self.NotLocalDataChanged:Fire(player, key, value, oldValue)
+				end
 			end)
 		end)
 		:catch(warn)
+		:await()
+	self.Initializing = false
+	self.Initialized:Fire()
 end
 
-function PlayerDataController:GetPlayerData(): any
-	if self.MyData == nil then
-		self.Initialized:Wait()
+function PlayerDataController:GetPlayerData(playerId: number?)
+	if self.Initializing then
+		self.Initialized:Fire()
 	end
+	if not playerId then
+		if self.MyData == nil then
+			self.Initialized:Wait()
+		end
 
-	return self.MyData
+		return self.MyData
+	else
+		local playerData
+		self.PlayerDataService
+			:GetPlayerData(playerId)
+			:andThen(function(value)
+				playerData = value
+			end)
+			:catch(warn)
+			:await()
+		return playerData
+	end
 end
 
 function PlayerDataController:GetAsync(key: any): any
