@@ -160,11 +160,12 @@ function GuiController:CloseGui(tree: Roact.Tree)
 end
 
 function GuiController:HideAllGui(blackList: {}?): ()
+	blackList = blackList or {}
 	self.GuiHidden = true
 
 	local changedGui = {}
 
-	local connection: RBXScriptConnection = self.GuiOpen:Connect(function(name: string, props: {}?, options: Options?)
+	local connection: RBXScriptConnection = self.GuiOpen:Connect(function(name: string, _, options: Options?)
 		if not options or not options.OpenIfHidden then
 			playerGui:FindFirstChild(name).Enabled = false
 			table.insert(changedGui, playerGui:FindFirstChild(name))

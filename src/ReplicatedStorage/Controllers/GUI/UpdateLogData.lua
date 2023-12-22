@@ -5,10 +5,13 @@ return {
 			"Fruit info in inventory",
 		},
 	},
-	-- Changed = {
-	-- 	Name = "Changed",
-	-- 	Content = {},
-	-- },
-	-- Removed = { Name = "Removed", Content = {} },
-	ComingSoon = { Name = "Coming soon", Content = { "Gloves", "Boots", "Leaderboards", "Fruit harvest improvements" } },
+	Changes = {
+		Name = "Changes",
+		Content = {
+			"Christmas music",
+			"Map & lighting colors improvements",
+			"Fruit harvesting improvements",
+		},
+	},
+	ComingSoon = { Name = "Coming soon", Content = { "Gloves", "Boots", "Leaderboards" } },
 }

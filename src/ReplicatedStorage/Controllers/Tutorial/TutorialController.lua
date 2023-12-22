@@ -182,12 +182,12 @@ function TutorialController:StartTutorial()
 						},
 					}
 
-					self.CameraController:RotateCameraAroud(cameraScenes[0]):await()
+					self.CameraController:RotateCameraAround(cameraScenes[0]):await()
 
 					for i = 1, 3 do
 						self.SFXController:PlaySFX("Switch")
 						setText(cameraScenes[i].name)
-						self.CameraController:RotateCameraAroud(cameraScenes[i]):await()
+						self.CameraController:RotateCameraAround(cameraScenes[i]):await()
 					end
 
 					self.NotificationsController:new({

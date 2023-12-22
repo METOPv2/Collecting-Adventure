@@ -33,8 +33,9 @@ local function FruitInfo(props)
 			Size = UDim2.fromOffset(0, 20),
 			BackgroundColor3 = (index % 2 == 0 and Color3.fromRGB(39, 39, 39) or Color3.fromRGB(104, 104, 104)),
 			BorderSizePixel = 0,
+			RichText = true,
 			Text = valueBinding:map(function(text)
-				return `{key}: {text}`
+				return string.format("%s: %s", key, text)
 			end),
 			TextSize = 12,
 			TextColor3 = Color3.fromRGB(255, 255, 255),
@@ -50,7 +51,7 @@ local function FruitInfo(props)
 							end
 						end)()
 					else
-						setValue(`value`)
+						setValue(value)
 					end
 				end
 				return enabled

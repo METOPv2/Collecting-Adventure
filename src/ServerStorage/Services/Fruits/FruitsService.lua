@@ -28,6 +28,8 @@ local FruitsService = Knit.CreateService({
 	},
 	FruitHarvested = Signal.new(),
 	FruitsSold = Signal.new(),
+	FruitsData = require(ReplicatedStorage.Source.Controllers.Fruits.FruitsData),
+	FruitHarvestDebounce = {},
 })
 
 function FruitsService:KnitInit()
@@ -138,6 +140,18 @@ function FruitsService:AddFruit(player: Player, fruit: string)
 
 	self.Client.FruitHarvested:Fire(player, fruit)
 	self.FruitHarvested:Fire(player, fruit)
+end
+
+function FruitsService.Client:AddFruit(Player: Player, name: string)
+	if self.Server.FruitHarvestDebounce[Player.UserId] then
+		local elapsedTime = workspace:GetServerTimeNow() - self.Server.FruitHarvestDebounce[Player.UserId]
+		local harvestTime = self.Server.FruitsData[name].HarvestTime
+		if harvestTime >= elapsedTime then
+			return
+		end
+	end
+	self.Server.FruitHarvestDebounce[Player.UserId] = workspace:GetServerTimeNow()
+	self.Server:AddFruit(Player, name)
 end
 
 function FruitsService:SellFruits(player: Player)

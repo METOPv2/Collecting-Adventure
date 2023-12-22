@@ -17,7 +17,9 @@ function CameraController:KnitInit()
 	self.GuiController = Knit.GetController("GuiController")
 end
 
-function CameraController:RotateCameraAroud(data: { target: Vector3, duration: number, offset: number, speed: number? })
+function CameraController:RotateCameraAround(
+	data: { target: Vector3, duration: number, offset: number, speed: number? }
+)
 	assert(data ~= nil, "Data is missing or nil.")
 	assert(data.offset ~= nil, "Offset is missing or nil.")
 	assert(data.duration ~= nil, "Duration is missing or nil.")

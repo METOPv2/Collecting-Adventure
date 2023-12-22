@@ -11,7 +11,7 @@ local Signal = require(ReplicatedStorage:WaitForChild("Packages").signal)
 local musicAssets: SoundGroup = SoundService:WaitForChild("Music")
 local sfxAssets: SoundGroup = SoundService:WaitForChild("SFX")
 
--- SFX contoller
+-- SFX controller
 local SFXController = Knit.CreateController({
 	Name = "SFXController",
 	CurrentPlayingMusic = nil,
@@ -111,13 +111,18 @@ function SFXController:PlayMusic(music: Sound?)
 		music = musicAssets:GetChildren()[math.random(1, #musicAssets:GetChildren())]
 	end
 
+	if music:GetAttribute("Disabled") == true then
+		self.MusicStoppedPlaying:Fire()
+		return
+	end
+
 	self.CurrentPlayingMusic = music
 	self.CurrentPlayingMusic:Play()
 	self.MusicStartedPlaying:Fire()
 
 	table.insert(
 		self.MusicConnections,
-		self.CurrentPlayingMusic.Ended:Connect(function(soundId)
+		self.CurrentPlayingMusic.Ended:Connect(function()
 			self:StopCurrentPlayingMusic()
 		end)
 	)

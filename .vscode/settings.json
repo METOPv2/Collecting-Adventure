@@ -2,5 +2,12 @@
     "[lua]": {
         "editor.defaultFormatter": "JohnnyMorganz.stylua",
         "editor.formatOnSave": true,
-    }
+    },
+    "cSpell.words": [
+        "Gamepass",
+        "Keypoint",
+        "Lerp",
+        "rbxassetid",
+        "Roact"
+    ]
 }
