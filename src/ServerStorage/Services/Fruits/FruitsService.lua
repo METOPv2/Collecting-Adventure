@@ -36,6 +36,7 @@ function FruitsService:KnitInit()
 	self.PlayerDataService = Knit.GetService("PlayerDataService")
 	self.LevelService = Knit.GetService("LevelService")
 	self.NotificationsService = Knit.GetService("NotificationsService")
+	self.PlayerEquipmentService = Knit.GetService("PlayerEquipmentService")
 	self.SFXService = Knit.GetService("SFXService")
 	self.GuiService = Knit.GetService("GuiService")
 	self.MarkerService = Knit.GetService("MarkerService")
@@ -144,8 +145,11 @@ end
 
 function FruitsService.Client:AddFruit(Player: Player, name: string)
 	if self.Server.FruitHarvestDebounce[Player.UserId] then
+		local fruitHarvestingSpeed = self.Server.PlayerEquipmentService:GetEquippedGloves(Player)
+		fruitHarvestingSpeed = fruitHarvestingSpeed and fruitHarvestingSpeed.FruitHarvestingSpeed or 1
 		local elapsedTime = workspace:GetServerTimeNow() - self.Server.FruitHarvestDebounce[Player.UserId]
 		local harvestTime = self.Server.FruitsData[name].HarvestTime
+			- (self.Server.FruitsData[name].HarvestTime * fruitHarvestingSpeed)
 		if harvestTime >= elapsedTime then
 			return
 		end

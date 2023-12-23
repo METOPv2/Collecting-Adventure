@@ -85,7 +85,9 @@ function CharacterController:KnitStart()
 		local trail = self:GetTrail()
 
 		if self.Frozen then
-			trail.Enabled = false
+			if trail then
+				trail.Enabled = false
+			end
 			return
 		end
 

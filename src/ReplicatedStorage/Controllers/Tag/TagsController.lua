@@ -33,7 +33,7 @@ function TagsController:KnitInit()
 	end)
 
 	Players.PlayerRemoving:Connect(function(player)
-		self:DeinitializePlayer(player)
+		self:DeInitializePlayer(player)
 	end)
 end
 
@@ -64,7 +64,7 @@ function TagsController:InitializePlayer(player: Player)
 	table.insert(self._InitializedTags, characterRemoving)
 end
 
-function TagsController:DeinitializePlayer(player: Player)
+function TagsController:DeInitializePlayer(player: Player)
 	for i, connection: RBXScriptConnection in ipairs(self._CharacterConnections) do
 		connection:Disconnect()
 		self._CharacterConnections[player.UserId][i] = nil

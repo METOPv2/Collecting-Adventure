@@ -7,6 +7,7 @@ local Knit = require(ReplicatedStorage:WaitForChild("Packages").knit)
 
 -- Assets
 local bagsAssets = ReplicatedStorage:WaitForChild("Assets").Bags
+local glovesAssets = ReplicatedStorage:WaitForChild("Assets").Gloves
 
 -- Fruit bucks products
 local fruitBucksProducts = {
@@ -254,6 +255,7 @@ local function Bag(props)
 				TextXAlignment = Enum.TextXAlignment.Left,
 				TextYAlignment = Enum.TextYAlignment.Bottom,
 				ZIndex = 4,
+				RichText = true,
 			}),
 			[1] = Roact.createElement("TextLabel", {
 				AutomaticSize = Enum.AutomaticSize.XY,
@@ -266,6 +268,7 @@ local function Bag(props)
 				TextXAlignment = Enum.TextXAlignment.Left,
 				TextYAlignment = Enum.TextYAlignment.Bottom,
 				ZIndex = 4,
+				RichText = true,
 			}),
 			[2] = Roact.createElement("TextLabel", {
 				AutomaticSize = Enum.AutomaticSize.XY,
@@ -279,6 +282,7 @@ local function Bag(props)
 				TextXAlignment = Enum.TextXAlignment.Left,
 				TextYAlignment = Enum.TextYAlignment.Bottom,
 				ZIndex = 4,
+				RichText = true,
 			}),
 		}),
 	})
@@ -291,6 +295,146 @@ local function Bags()
 
 	for _, value in pairs(bagData) do
 		table.insert(elements, Roact.createElement(Bag, { bag = value }))
+	end
+
+	return Roact.createFragment(elements)
+end
+
+local function GlovesButton(props)
+	local ShopController = Knit.GetController("ShopController")
+	local PlayerEquipmentController = Knit.GetController("PlayerEquipmentController")
+	local SFXController = Knit.GetController("SFXController")
+
+	local gloves = props.gloves
+	local model: Model = glovesAssets:FindFirstChild(gloves.Id):Clone()
+	local size: Vector3 = model:GetExtentsSize()
+	local pivot: CFrame = model:GetPivot()
+	local cameraRef = Roact.createRef()
+	local hovering, updateHover = Roact.createBinding(false)
+
+	return Roact.createElement("Frame", {
+		BackgroundColor3 = Color3.fromRGB(46, 46, 46),
+		BorderSizePixel = 0,
+		Size = UDim2.fromOffset(50, 50),
+	}, {
+		UIStroke = Roact.createElement("UIStroke", {
+			Transparency = 0.8,
+		}),
+		UICorner = Roact.createElement("UICorner", {
+			CornerRadius = UDim.new(0, 5),
+		}),
+		Equip = Roact.createElement("TextButton", {
+			Size = UDim2.fromScale(1, 1),
+			BorderSizePixel = 0,
+			BackgroundTransparency = 1,
+			Text = "",
+			ZIndex = 2,
+			[Roact.Event.Activated] = function()
+				ShopController:BuyGloves(gloves.Id)
+			end,
+			[Roact.Event.MouseEnter] = function()
+				updateHover(true)
+				SFXController:PlaySFX("MouseEnter")
+			end,
+			[Roact.Event.MouseLeave] = function()
+				updateHover(false)
+			end,
+		}),
+		ViewportFrame = Roact.createElement("ViewportFrame", {
+			Size = UDim2.fromScale(1, 1),
+			BorderSizePixel = 0,
+			BackgroundTransparency = 1,
+			CurrentCamera = cameraRef,
+			LightColor = Color3.fromRGB(255, 255, 255),
+		}, {
+			Camera = Roact.createElement("Camera", {
+				CFrame = CFrame.lookAt(pivot.Position + size, pivot.Position),
+				[Roact.Ref] = cameraRef,
+			}),
+			WorldModel = Roact.createElement("WorldModel", {
+				[Roact.Ref] = function(ref)
+					model.Parent = ref
+				end,
+			}),
+		}),
+		Info = Roact.createElement("Frame", {
+			AnchorPoint = Vector2.new(0, 1),
+			BorderSizePixel = 0,
+			BackgroundColor3 = Color3.fromRGB(46, 46, 46),
+			AutomaticSize = Enum.AutomaticSize.XY,
+			Visible = hovering,
+			ZIndex = 3,
+		}, {
+			UIListLayout = Roact.createElement("UIListLayout", {
+				FillDirection = Enum.FillDirection.Vertical,
+				HorizontalAlignment = Enum.HorizontalAlignment.Left,
+				VerticalAlignment = Enum.VerticalAlignment.Bottom,
+				SortOrder = Enum.SortOrder.Name,
+			}),
+			UIStroke = Roact.createElement("UIStroke", {
+				Transparency = 0.8,
+				Color = Color3.fromRGB(255, 255, 255),
+			}),
+			UICorner = Roact.createElement("UICorner", {
+				CornerRadius = UDim.new(0, 5),
+			}),
+			UIPadding = Roact.createElement("UIPadding", {
+				PaddingLeft = UDim.new(0, 5),
+				PaddingBottom = UDim.new(0, 5),
+				PaddingTop = UDim.new(0, 5),
+				PaddingRight = UDim.new(0, 5),
+			}),
+			[0] = Roact.createElement("TextLabel", {
+				AutomaticSize = Enum.AutomaticSize.XY,
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				Text = gloves.Name,
+				RichText = true,
+				TextColor3 = Color3.fromRGB(255, 255, 255),
+				TextSize = 14,
+				Font = Enum.Font.Ubuntu,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextYAlignment = Enum.TextYAlignment.Bottom,
+				ZIndex = 4,
+			}),
+			[1] = Roact.createElement("TextLabel", {
+				AutomaticSize = Enum.AutomaticSize.XY,
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				RichText = true,
+				Text = `Fruit harvesting speed multiplier: {gloves.FruitHarvestingSpeed}x`,
+				TextColor3 = Color3.fromRGB(255, 255, 255),
+				TextSize = 12,
+				Font = Enum.Font.Ubuntu,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextYAlignment = Enum.TextYAlignment.Bottom,
+				ZIndex = 4,
+			}),
+			[2] = Roact.createElement("TextLabel", {
+				AutomaticSize = Enum.AutomaticSize.XY,
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				RichText = true,
+				Text = PlayerEquipmentController:HasGloves(gloves.Id) and "Owned"
+					or `Price: {gloves.Price == 0 and "Free" or gloves.Price}`,
+				TextColor3 = Color3.fromRGB(37, 199, 56),
+				TextSize = 12,
+				Font = Enum.Font.Ubuntu,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextYAlignment = Enum.TextYAlignment.Bottom,
+				ZIndex = 4,
+			}),
+		}),
+	})
+end
+
+local function Gloves()
+	local PlayerEquipmentController = Knit.GetController("PlayerEquipmentController")
+	local glovesData = PlayerEquipmentController:GetGlovesData()
+	local elements = {}
+
+	for _, value in pairs(glovesData) do
+		table.insert(elements, Roact.createElement(GlovesButton, { gloves = value }))
 	end
 
 	return Roact.createFragment(elements)
@@ -380,7 +524,7 @@ function Shop:render()
 	return Roact.createElement("ScreenGui", {
 		ResetOnSpawn = false,
 	}, {
-		Contrainer = Roact.createElement(WindowComponent, {
+		Container = Roact.createElement(WindowComponent, {
 			title = "Shop",
 			size = UDim2.fromOffset(400, 300),
 			closeGui = closeGui,
@@ -409,10 +553,10 @@ function Shop:render()
 				}),
 				Tabs = Roact.createElement(
 					Tabs,
-					{ activeTab = activeTab, changeActiveTab = changeActiveTab, tabs = { "Bags" } }
+					{ activeTab = activeTab, changeActiveTab = changeActiveTab, tabs = { "Bags", "Gloves" } }
 				),
 			}),
-			Contrainer = Roact.createElement("Frame", {
+			Container = Roact.createElement("Frame", {
 				Position = UDim2.fromOffset(150, 0),
 				Size = UDim2.new(1, -150, 1, 0),
 				BackgroundTransparency = 1,
@@ -421,6 +565,10 @@ function Shop:render()
 				Bags = Roact.createElement(
 					Holder,
 					{ name = "Bags", itemsElement = Roact.createElement(Bags), activeTab = activeTab }
+				),
+				Gloves = Roact.createElement(
+					Holder,
+					{ name = "Gloves", itemsElement = Roact.createElement(Gloves), activeTab = activeTab }
 				),
 				FruitBucks = Roact.createElement("ScrollingFrame", {
 					Size = UDim2.fromScale(1, 1),

@@ -174,7 +174,7 @@ function AdminService:Block(adminId: number, data: { playerId: number, reason: s
 			Duration = data.duration,
 			BlockTime = workspace:GetServerTimeNow(),
 		})
-		self.PlayerDataService:DeinitializePlayer(data.playerId)
+		self.PlayerDataService:DeInitializePlayer(data.playerId)
 	end
 	self:Kick(adminId, {
 		playerId = data.playerId,

@@ -10,6 +10,8 @@ local PlayerEquipmentController = Knit.CreateController({
 	Name = "PlayerEquipmentController",
 	EquippedBag = "",
 	BagEquipped = Signal.new(),
+	EquippedGloves = "",
+	GlovesEquipped = Signal.new(),
 	Initialized = Signal.new(),
 	Initializing = true,
 })
@@ -43,6 +45,31 @@ function PlayerEquipmentController:KnitInit()
 		:catch(warn)
 		:await()
 
+	self.PlayerEquipmentService
+		:GetGloves()
+		:andThen(function(gloves)
+			self.Gloves = gloves
+		end)
+		:catch(warn)
+		:await()
+
+	self.PlayerEquipmentService
+		:GetGlovesData()
+		:andThen(function(glovesData)
+			self.GlovesData = glovesData
+		end)
+		:catch(warn)
+		:await()
+
+	self.PlayerEquipmentService
+		:GetEquippedGloves()
+		:andThen(function(equippedGloves: string)
+			self.EquippedGloves = equippedGloves
+			self.GlovesEquipped:Fire(equippedGloves)
+		end)
+		:catch(warn)
+		:await()
+
 	self.PlayerEquipmentService.BagAdded:Connect(function(bags)
 		self.Bags = bags
 	end)
@@ -51,6 +78,20 @@ function PlayerEquipmentController:KnitInit()
 		self.EquippedBag = equippedBag
 		self.BagEquipped:Fire(equippedBag)
 		if equippedBag ~= "" then
+			self.SFXController:PlaySFX("Equip")
+		else
+			self.SFXController:PlaySFX("Unequip")
+		end
+	end)
+
+	self.PlayerEquipmentService.GlovesAdded:Connect(function(gloves)
+		self.Gloves = gloves
+	end)
+
+	self.PlayerEquipmentService.GlovesEquipped:Connect(function(equippedGloves: string)
+		self.EquippedGloves = equippedGloves
+		self.GlovesEquipped:Fire(equippedGloves)
+		if equippedGloves ~= "" then
 			self.SFXController:PlaySFX("Equip")
 		else
 			self.SFXController:PlaySFX("Unequip")
@@ -69,9 +110,22 @@ function PlayerEquipmentController:GetEquippedBag(): string
 	return self.EquippedBag
 end
 
+function PlayerEquipmentController:GetEquippedGloves(): string
+	if self.EquippedGloves == nil then
+		self.GlovesEquipped:Wait()
+	end
+
+	return self.EquippedGloves
+end
+
 function PlayerEquipmentController:EquipBag(bag: string)
 	assert(bag, "Bag is missing or nil.")
 	self.PlayerEquipmentService:EquipBag(bag)
+end
+
+function PlayerEquipmentController:EquipGloves(gloves: string)
+	assert(gloves, "Gloves is missing or nil.")
+	self.PlayerEquipmentService:EquipGloves(gloves)
 end
 
 function PlayerEquipmentController:IsBagEquipped(bag: string): boolean
@@ -80,6 +134,14 @@ function PlayerEquipmentController:IsBagEquipped(bag: string): boolean
 		self.BagEquipped:Wait()
 	end
 	return self.EquippedBag == bag
+end
+
+function PlayerEquipmentController:IsGlovesEquipped(gloves: string): boolean
+	assert(gloves, "Gloves is missing or nil.")
+	if self.EquippedGloves == nil then
+		self.GlovesEquipped:Wait()
+	end
+	return self.EquippedGloves == gloves
 end
 
 function PlayerEquipmentController:GetBagData(bag: string?): {}
@@ -94,6 +156,18 @@ function PlayerEquipmentController:GetBagData(bag: string?): {}
 	end
 end
 
+function PlayerEquipmentController:GetGlovesData(gloves: string?): {}
+	if self.Initializing then
+		self.Initialized:Wait()
+	end
+
+	if gloves then
+		return self.GlovesData[gloves]
+	else
+		return self.GlovesData
+	end
+end
+
 function PlayerEquipmentController:DoOwnBag(bag: string): boolean
 	if self.Initializing then
 		self.Initialized:Wait()
@@ -102,12 +176,28 @@ function PlayerEquipmentController:DoOwnBag(bag: string): boolean
 	return table.find(self.Bags, bag) ~= nil
 end
 
+function PlayerEquipmentController:HasGloves(gloves: string): boolean
+	if self.Initializing then
+		self.Initialized:Wait()
+	end
+
+	return table.find(self.Gloves, gloves) ~= nil
+end
+
 function PlayerEquipmentController:GetBags()
 	if self.Initializing then
 		self.Initialized:Wait()
 	end
 
 	return self.Bags
+end
+
+function PlayerEquipmentController:GetGloves()
+	if self.Initializing then
+		self.Initialized:Wait()
+	end
+
+	return self.Gloves
 end
 
 return PlayerEquipmentController

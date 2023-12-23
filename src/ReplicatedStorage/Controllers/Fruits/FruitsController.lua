@@ -22,6 +22,7 @@ function FruitsController:KnitInit()
 	self.NotificationsService = Knit.GetService("NotificationsService")
 	self.GuiController = Knit.GetController("GuiController")
 	self.CharacterController = Knit.GetController("CharacterController")
+	self.PlayerEquipmentController = Knit.GetController("PlayerEquipmentController")
 
 	self.FruitsService.FruitsSold:Connect(function(cash)
 		self.FruitsSold:Fire(cash)
@@ -95,11 +96,14 @@ function FruitsController:HarvestFruit(fruit: Model, callback: () -> ())
 	HighLight.OutlineTransparency = 0.5
 	HighLight.FillTransparency = 1
 	HighLight.Parent = fruit
-	self.GuiController:OpenGui(
-		"FruitHarvest",
-		{ signal = fruitHarvestedSignal, targetTime = fruitData.HarvestTime },
-		{ CloseItSelf = true, OpenIfHidden = true }
-	)
+	local fruitHarvestingSpeed =
+		self.PlayerEquipmentController:GetGlovesData(self.PlayerEquipmentController:GetEquippedGloves())
+	fruitHarvestingSpeed = fruitHarvestingSpeed and fruitHarvestingSpeed.FruitHarvestingSpeed or 1
+	self.GuiController:OpenGui("FruitHarvest", {
+		signal = fruitHarvestedSignal,
+		targetTime = fruitData.HarvestTime,
+		fruitHarvestingSpeed = fruitHarvestingSpeed or 1,
+	}, { CloseItSelf = true, OpenIfHidden = true })
 
 	fruitHarvestedSignal:Connect(function(cancelled: boolean?)
 		HighLight:Destroy()

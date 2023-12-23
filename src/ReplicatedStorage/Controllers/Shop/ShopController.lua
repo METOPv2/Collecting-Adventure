@@ -15,4 +15,9 @@ function ShopController:BuyBag(bag: string)
 	self.ShopService:BuyBag(bag)
 end
 
+function ShopController:BuyGloves(gloves: string)
+	assert(gloves, "Gloves is missing or nil.")
+	self.ShopService:BuyGloves(gloves)
+end
+
 return ShopController

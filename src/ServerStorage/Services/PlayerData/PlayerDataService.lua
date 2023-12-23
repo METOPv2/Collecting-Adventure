@@ -65,8 +65,10 @@ local PlayerDataService = Knit.CreateService({
 	Template = {
 		Fruits = {},
 		Bags = { "Pockets" },
+		Gloves = {},
 		Xp = 0,
 		Level = 0,
+		EquippedGloves = "",
 		EquippedBag = "",
 		FruitBucks = 0,
 		Visits = 0,
@@ -97,11 +99,11 @@ local PlayerDataService = Knit.CreateService({
 	SaveOnStudio = true,
 	DataChanged = Signal.new(),
 	InitializedPlayer = Signal.new(),
-	DeinitializedPlayer = Signal.new(),
+	DeInitializedPlayer = Signal.new(),
 })
 
 function PlayerDataService:KnitInit()
-	self.AdminServie = Knit.GetService("AdminService")
+	self.AdminService = Knit.GetService("AdminService")
 
 	for _, player in ipairs(Players:GetPlayers()) do
 		coroutine.wrap(self.InitializedPlayer)(self, player)
@@ -112,12 +114,12 @@ function PlayerDataService:KnitInit()
 	end)
 
 	Players.PlayerRemoving:Connect(function(player)
-		self:DeinitializePlayer(player)
+		self:DeInitializePlayer(player)
 	end)
 
 	game:BindToClose(function()
 		while next(self.SessionDataBase) do
-			self.DeinitializedPlayer:Wait()
+			self.DeInitializedPlayer:Wait()
 		end
 	end)
 end
@@ -177,7 +179,7 @@ function PlayerDataService:InitializePlayer(playerId: number)
 	end
 end
 
-function PlayerDataService:DeinitializePlayer(player: Player | number)
+function PlayerDataService:DeInitializePlayer(player: Player | number)
 	assert(player ~= nil, "Player is missing.")
 
 	local playerId = typeof(player) == "Instance" and player.UserId or player
@@ -198,7 +200,7 @@ function PlayerDataService:DeinitializePlayer(player: Player | number)
 	if success then
 		self.SessionDataBase[playerId].LeaveTime = workspace:GetServerTimeNow()
 		self.SessionDataBase[playerId] = nil
-		self.DeinitializedPlayer:Fire(player)
+		self.DeInitializedPlayer:Fire(player)
 	else
 		warn(`Failed to save data. Error: {errorMessage}`)
 	end
@@ -342,8 +344,8 @@ function PlayerDataService:InsertInTableAsync(
 	assert(key ~= nil, "Key is missing or nil.")
 	assert(value ~= nil, "Value is missing or nil.")
 	assert(value == value, `Value may be nan. Value: "{value}".`)
-	local dataInkey = self:GetAsync(player, key)
-	local dataType = typeof(dataInkey)
+	local dataInKey = self:GetAsync(player, key)
+	local dataType = typeof(dataInKey)
 	assert(dataType == "table", `Cannot insert table in "{dataType}" data.`)
 
 	local playerId = typeof(player) == "Instance" and player.UserId or player
@@ -354,7 +356,7 @@ function PlayerDataService:InsertInTableAsync(
 		until self.SessionDataBase[playerId]
 	end
 
-	local previousValue = table.clone(dataInkey)
+	local previousValue = table.clone(dataInKey)
 
 	table.insert(self.SessionDataBase[playerId][key], value)
 	self.DataChanged:Fire(player, key, self:GetAsync(player, key), previousValue)
@@ -381,8 +383,8 @@ function PlayerDataService:RemoveAsync(player: Player, key: any, value: any?, op
 	assert(value, "Table is missing or nil.")
 	assert(value == value, `Table may be nan. Table: "{value}".`)
 	local valueType = typeof(value)
-	local dataInkey = self:GetAsync(player, key)
-	local dataType = typeof(dataInkey)
+	local dataInKey = self:GetAsync(player, key)
+	local dataType = typeof(dataInKey)
 	assert(dataType == "table", `Cannot remove data from {dataType}. Table only.`)
 
 	local playerId = typeof(player) == "Instance" and player.UserId or player
@@ -397,7 +399,7 @@ function PlayerDataService:RemoveAsync(player: Player, key: any, value: any?, op
 		return self:SetAsync(player, key, nil)
 	end
 
-	for i, t in pairs(dataInkey) do
+	for i, t in pairs(dataInKey) do
 		if valueType == "table" and typeof(t) == valueType and #t == #value then
 			local same = true
 
@@ -408,7 +410,7 @@ function PlayerDataService:RemoveAsync(player: Player, key: any, value: any?, op
 			end
 
 			if same then
-				local oldValue = table.clone(dataInkey)
+				local oldValue = table.clone(dataInKey)
 
 				self.SessionDataBase[playerId][key][i] = nil
 				self.DataChanged:Fire(player, key, self:GetAsync(player, key), oldValue)

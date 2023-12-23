@@ -31,7 +31,7 @@ function TeleportService:KnitStart()
 	end)
 
 	Players.PlayerRemoving:Connect(function(player)
-		self:DeinitializePlayer(player)
+		self:DeInitializePlayer(player)
 	end)
 
 	for _, spawnpoint in ipairs(workspace.Spawnpoints:GetChildren()) do
@@ -64,7 +64,7 @@ function TeleportService:InitializePlayer(player: Player)
 	self.InitializedPlayers[player.UserId] = { connections = connections }
 end
 
-function TeleportService:DeinitializePlayer(player: Player)
+function TeleportService:DeInitializePlayer(player: Player)
 	if self.InitializedPlayers[player.UserId] then
 		for _, connection: RBXScriptConnection in ipairs(self.InitializedPlayers[player.UserId].connections) do
 			connection:Disconnect()

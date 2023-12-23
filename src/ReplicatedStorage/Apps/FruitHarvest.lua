@@ -44,6 +44,7 @@ local function FruitHarvest(props)
 	local closeGui = props.closeGui
 	local signal = props.signal
 	local targetTime = props.targetTime
+	local fruitHarvestingSpeed = props.fruitHarvestingSpeed
 
 	local camera = workspace.CurrentCamera
 
@@ -66,10 +67,9 @@ local function FruitHarvest(props)
 		if position:getValue().X.Offset + (speedX * deltaTime) + circleSize > camera.ViewportSize.X then
 			speedX = -absoluteSpeedX
 			tree = Roact.mount(
-				Roact.createElement(
-					BounceCircle,
-					{ position = UDim2.fromOffset(camera.ViewportSize.X, position:getValue().Y.Offset) }
-				),
+				Roact.createElement(BounceCircle, {
+					position = UDim2.fromOffset(camera.ViewportSize.X, position:getValue().Y.Offset + circleSize / 2),
+				}),
 				PlayerGui,
 				"CircleBounce"
 			)
@@ -83,10 +83,9 @@ local function FruitHarvest(props)
 		if position:getValue().Y.Offset + (speedY * deltaTime) + circleSize > camera.ViewportSize.Y then
 			speedY = -absoluteSpeedY
 			tree = Roact.mount(
-				Roact.createElement(
-					BounceCircle,
-					{ position = UDim2.fromOffset(position:getValue().X.Offset, camera.ViewportSize.Y) }
-				),
+				Roact.createElement(BounceCircle, {
+					position = UDim2.fromOffset(position:getValue().X.Offset + circleSize / 2, camera.ViewportSize.Y),
+				}),
 				PlayerGui,
 				"CircleBounce"
 			)
@@ -100,7 +99,10 @@ local function FruitHarvest(props)
 		if position:getValue().X.Offset + (speedX * deltaTime) < 0 then
 			speedX = absoluteSpeedX
 			tree = Roact.mount(
-				Roact.createElement(BounceCircle, { position = UDim2.fromOffset(0, position:getValue().Y.Offset) }),
+				Roact.createElement(
+					BounceCircle,
+					{ position = UDim2.fromOffset(0, position:getValue().Y.Offset + circleSize / 2) }
+				),
 				PlayerGui,
 				"CircleBounce"
 			)
@@ -114,7 +116,10 @@ local function FruitHarvest(props)
 		if position:getValue().Y.Offset + (speedY * deltaTime) < 0 then
 			speedY = absoluteSpeedY
 			tree = Roact.mount(
-				Roact.createElement(BounceCircle, { position = UDim2.fromOffset(position:getValue().X.Offset, 0) }),
+				Roact.createElement(
+					BounceCircle,
+					{ position = UDim2.fromOffset(position:getValue().X.Offset + circleSize / 2, 0) }
+				),
 				PlayerGui,
 				"CircleBounce"
 			)
@@ -137,7 +142,7 @@ local function FruitHarvest(props)
 			and mouse.Y > position:getValue().Y.Offset
 			and mouse.Y < position:getValue().Y.Offset + circleSize
 		then
-			setHoverTime(hoverTime:getValue() + deltaTime)
+			setHoverTime(hoverTime:getValue() + deltaTime * fruitHarvestingSpeed)
 			if hoverTime:getValue() > targetTime then
 				RunService:UnbindFromRenderStep("FruitHarvest")
 				signal:Fire()

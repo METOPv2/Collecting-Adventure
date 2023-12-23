@@ -8,6 +8,7 @@ local Knit = require(ReplicatedStorage:WaitForChild("Packages").knit)
 -- Assets
 local fruitsAssets = ReplicatedStorage:WaitForChild("Assets").Fruits
 local bagsAssets = ReplicatedStorage:WaitForChild("Assets").Bags
+local glovesAssets = ReplicatedStorage:WaitForChild("Assets").Gloves
 
 -- Components
 local WindowComponent = require(ReplicatedStorage:WaitForChild("Source").Components.Window)
@@ -280,6 +281,80 @@ local function Bags(props)
 	return Roact.createFragment(elements)
 end
 
+local function GlovesButton(props)
+	local SFXController = Knit.GetController("SFXController")
+	local PlayerEquipmentController = Knit.GetController("PlayerEquipmentController")
+
+	local gloves = props.gloves
+	local equipped = props.equipped
+	local updateEquip = props.updateEquip
+	local model: Model = glovesAssets:FindFirstChild(gloves):Clone()
+	local size: Vector3 = model:GetExtentsSize()
+	local pivot: CFrame = model:GetPivot()
+	local cameraRef = Roact.createRef()
+
+	return Roact.createElement("Frame", {
+		BackgroundColor3 = Color3.fromRGB(46, 46, 46),
+		BorderSizePixel = 0,
+		Size = UDim2.fromOffset(50, 50),
+	}, {
+		UIStroke = Roact.createElement("UIStroke", {
+			Color = equipped:map(function(value)
+				return value == gloves and Color3.fromRGB(0, 225, 0) or Color3.fromRGB(119, 119, 119)
+			end),
+		}),
+		UICorner = Roact.createElement("UICorner", {
+			CornerRadius = UDim.new(0, 5),
+		}),
+		Equip = Roact.createElement("TextButton", {
+			Size = UDim2.fromScale(1, 1),
+			BorderSizePixel = 0,
+			BackgroundTransparency = 1,
+			Text = "",
+			ZIndex = 2,
+			[Roact.Event.Activated] = function()
+				local isEquipped: boolean = PlayerEquipmentController:IsGlovesEquipped(gloves)
+				PlayerEquipmentController:EquipGloves(isEquipped and "" or gloves)
+				updateEquip(isEquipped and "" or gloves)
+			end,
+			[Roact.Event.MouseEnter] = function()
+				SFXController:PlaySFX("MouseEnter")
+			end,
+		}),
+		ViewportFrame = Roact.createElement("ViewportFrame", {
+			Size = UDim2.fromScale(1, 1),
+			BorderSizePixel = 0,
+			BackgroundTransparency = 1,
+			CurrentCamera = cameraRef,
+			LightColor = Color3.fromRGB(255, 255, 255),
+		}, {
+			Camera = Roact.createElement("Camera", {
+				CFrame = CFrame.lookAt(pivot.Position + size, pivot.Position),
+				[Roact.Ref] = cameraRef,
+			}),
+			WorldModel = Roact.createElement("WorldModel", {
+				[Roact.Ref] = function(ref)
+					model.Parent = ref
+				end,
+			}),
+		}),
+	})
+end
+
+local function Gloves(props)
+	local elements = {}
+	local equipped, updateEquip = Roact.createBinding(props.equippedGloves)
+
+	for _, gloves in pairs(props.gloves) do
+		table.insert(
+			elements,
+			Roact.createElement(GlovesButton, { gloves = gloves, equipped = equipped, updateEquip = updateEquip })
+		)
+	end
+
+	return Roact.createFragment(elements)
+end
+
 local function Holder(props)
 	return Roact.createElement("Frame", {
 		Size = UDim2.new(1, 0, 1, 0),
@@ -339,6 +414,7 @@ function Inventory:init()
 	self:setState({
 		fruits = self.PlayerDataController:GetAsync("Fruits"),
 		bags = self.PlayerDataController:GetAsync("Bags"),
+		gloves = self.PlayerEquipmentController:GetGloves(),
 	})
 
 	self.connection = self.PlayerDataController.DataChanged:Connect(function(key: any, value: any)
@@ -346,6 +422,8 @@ function Inventory:init()
 			self:setState({ fruits = value })
 		elseif key == "Bags" then
 			self:setState({ bags = value })
+		elseif key == "Gloves" then
+			self:setState({ gloves = value })
 		end
 	end)
 end
@@ -359,7 +437,7 @@ function Inventory:render()
 	return Roact.createElement("ScreenGui", {
 		ResetOnSpawn = false,
 	}, {
-		Contrainer = Roact.createElement(WindowComponent, {
+		Container = Roact.createElement(WindowComponent, {
 			title = "Inventory",
 			size = UDim2.fromOffset(400, 300),
 			closeGui = closeGui,
@@ -387,10 +465,10 @@ function Inventory:render()
 				}),
 				Tabs = Roact.createElement(
 					Tabs,
-					{ tabs = { "Fruits", "Bags" }, active = currentTab, changeActive = updateCurrentTab }
+					{ tabs = { "Fruits", "Bags", "Gloves" }, active = currentTab, changeActive = updateCurrentTab }
 				),
 			}),
-			Contrainer = Roact.createElement("Frame", {
+			Container = Roact.createElement("Frame", {
 				Position = UDim2.fromOffset(150, 0),
 				Size = UDim2.new(1, -150, 1, 0),
 				BackgroundTransparency = 1,
@@ -412,6 +490,16 @@ function Inventory:render()
 					noItemsMessage = "Currently, you have no fruits.",
 					items = self.state.fruits,
 					itemsElement = Roact.createElement(Fruits, { fruits = self.state.fruits }),
+				}),
+				Gloves = Roact.createElement(Holder, {
+					name = "Gloves",
+					currentTab = currentTab,
+					noItemsMessage = "Currently, you have no gloves.",
+					items = self.state.gloves,
+					itemsElement = Roact.createElement(Gloves, {
+						gloves = self.state.gloves,
+						equippedGloves = self.PlayerEquipmentController:GetEquippedGloves(),
+					}),
 				}),
 			}),
 		}),
