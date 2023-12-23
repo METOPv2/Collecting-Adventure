@@ -8,6 +8,7 @@ local Knit = require(ReplicatedStorage.Packages.knit)
 -- Data bases
 local BagsDataBase = require(ServerStorage.Source.DataBases.Bags)
 local GlovesDataBase = require(ServerStorage.Source.DataBases.Gloves)
+local BootsDataBase = require(ServerStorage.Source.DataBases.Boots)
 
 -- Shop service
 local ShopService = Knit.CreateService({
@@ -54,6 +55,24 @@ end
 
 function ShopService.Client:BuyGloves(player: Player, gloves: string)
 	self.Server:BuyGloves(player, gloves)
+end
+
+function ShopService:BuyBoots(player: Player, boots: string)
+	assert(player, "Player is missing or nil.")
+	assert(boots, "Boots is missing or nil.")
+	assert(BootsDataBase[boots], `{boots} boots doesn't exist.`)
+	if self.PlayerEquipmentService:HasBoots(player, boots) then
+		return
+	end
+	if self.PlayerDataService:GetAsync(player, "FruitBucks") < BootsDataBase[boots].Price then
+		return
+	end
+	self.PlayerDataService:IncrementAsync(player, "FruitBucks", -BootsDataBase[boots].Price)
+	self.PlayerDataService:InsertInTableAsync(player, "Boots", boots)
+end
+
+function ShopService.Client:BuyBoots(player: Player, boots: string)
+	self.Server:BuyBoots(player, boots)
 end
 
 return ShopService

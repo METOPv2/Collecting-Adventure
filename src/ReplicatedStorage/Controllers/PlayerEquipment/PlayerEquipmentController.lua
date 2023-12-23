@@ -9,9 +9,11 @@ local Signal = require(ReplicatedStorage:WaitForChild("Packages").signal)
 local PlayerEquipmentController = Knit.CreateController({
 	Name = "PlayerEquipmentController",
 	EquippedBag = "",
-	BagEquipped = Signal.new(),
 	EquippedGloves = "",
+	EquippedBoots = "",
+	BagEquipped = Signal.new(),
 	GlovesEquipped = Signal.new(),
+	BootsEquipped = Signal.new(),
 	Initialized = Signal.new(),
 	Initializing = true,
 })
@@ -70,6 +72,31 @@ function PlayerEquipmentController:KnitInit()
 		:catch(warn)
 		:await()
 
+	self.PlayerEquipmentService
+		:GetBoots()
+		:andThen(function(boots)
+			self.Boots = boots
+		end)
+		:catch(warn)
+		:await()
+
+	self.PlayerEquipmentService
+		:GetBootsData()
+		:andThen(function(bootsData)
+			self.BootsData = bootsData
+		end)
+		:catch(warn)
+		:await()
+
+	self.PlayerEquipmentService
+		:GetEquippedBoots()
+		:andThen(function(equippedBoots: string)
+			self.EquippedBoots = equippedBoots
+			self.BootsEquipped:Fire(equippedBoots)
+		end)
+		:catch(warn)
+		:await()
+
 	self.PlayerEquipmentService.BagAdded:Connect(function(bags)
 		self.Bags = bags
 	end)
@@ -98,6 +125,20 @@ function PlayerEquipmentController:KnitInit()
 		end
 	end)
 
+	self.PlayerEquipmentService.BootsAdded:Connect(function(boots)
+		self.Boots = boots
+	end)
+
+	self.PlayerEquipmentService.BootsEquipped:Connect(function(equippedBoots: string)
+		self.EquippedBoots = equippedBoots
+		self.BootsEquipped:Fire(equippedBoots)
+		if equippedBoots ~= "" then
+			self.SFXController:PlaySFX("Equip")
+		else
+			self.SFXController:PlaySFX("Unequip")
+		end
+	end)
+
 	self.Initializing = false
 	self.Initialized:Fire()
 end
@@ -118,6 +159,14 @@ function PlayerEquipmentController:GetEquippedGloves(): string
 	return self.EquippedGloves
 end
 
+function PlayerEquipmentController:GetEquippedBoots(): string
+	if self.EquippedBoots == nil then
+		self.EquippedBoots:Wait()
+	end
+
+	return self.EquippedBoots
+end
+
 function PlayerEquipmentController:EquipBag(bag: string)
 	assert(bag, "Bag is missing or nil.")
 	self.PlayerEquipmentService:EquipBag(bag)
@@ -126,6 +175,11 @@ end
 function PlayerEquipmentController:EquipGloves(gloves: string)
 	assert(gloves, "Gloves is missing or nil.")
 	self.PlayerEquipmentService:EquipGloves(gloves)
+end
+
+function PlayerEquipmentController:EquipBoots(boots: string)
+	assert(boots, "Boots is missing or nil.")
+	self.PlayerEquipmentService:EquipBoots(boots)
 end
 
 function PlayerEquipmentController:IsBagEquipped(bag: string): boolean
@@ -142,6 +196,14 @@ function PlayerEquipmentController:IsGlovesEquipped(gloves: string): boolean
 		self.GlovesEquipped:Wait()
 	end
 	return self.EquippedGloves == gloves
+end
+
+function PlayerEquipmentController:IsBootsEquipped(boots: string): boolean
+	assert(boots, "Boots is missing or nil.")
+	if self.EquippedBoots == nil then
+		self.BootsEquipped:Wait()
+	end
+	return self.EquippedBoots == boots
 end
 
 function PlayerEquipmentController:GetBagData(bag: string?): {}
@@ -168,6 +230,18 @@ function PlayerEquipmentController:GetGlovesData(gloves: string?): {}
 	end
 end
 
+function PlayerEquipmentController:GetBootsData(boots: string?): {}
+	if self.Initializing then
+		self.Initialized:Wait()
+	end
+
+	if boots then
+		return self.BootsData[boots]
+	else
+		return self.BootsData
+	end
+end
+
 function PlayerEquipmentController:DoOwnBag(bag: string): boolean
 	if self.Initializing then
 		self.Initialized:Wait()
@@ -184,6 +258,14 @@ function PlayerEquipmentController:HasGloves(gloves: string): boolean
 	return table.find(self.Gloves, gloves) ~= nil
 end
 
+function PlayerEquipmentController:HasBoots(boots: string): boolean
+	if self.Initializing then
+		self.Initialized:Wait()
+	end
+
+	return table.find(self.Boots, boots) ~= nil
+end
+
 function PlayerEquipmentController:GetBags()
 	if self.Initializing then
 		self.Initialized:Wait()
@@ -198,6 +280,14 @@ function PlayerEquipmentController:GetGloves()
 	end
 
 	return self.Gloves
+end
+
+function PlayerEquipmentController:GetBoots()
+	if self.Initializing then
+		self.Initialized:Wait()
+	end
+
+	return self.Boots
 end
 
 return PlayerEquipmentController

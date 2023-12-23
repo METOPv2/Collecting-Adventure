@@ -30,7 +30,6 @@ function Main:init()
 		self.updateFruitBucks(value)
 	end)
 
-	local passCapacityAdded = false
 	local capacityPassEnabled = self.SettingsController:GetSetting("CapacityPassEnabled")
 	local ownsPass
 	self.MonetizationController
@@ -95,7 +94,7 @@ local function Tag(props)
 		RichText = true,
 		Text = `<i>{text}</i>`,
 		TextSize = 12,
-		TextColor3 = Color3.fromRGB(255, 255, 255),
+		TextColor3 = Color3.fromRGB(0, 0, 0),
 		Font = Enum.Font.Ubuntu,
 		Visible = buttonTag:map(function(value)
 			return value == text
@@ -119,8 +118,9 @@ local function OpenButton(props)
 		BorderSizePixel = 0,
 		BackgroundTransparency = 1,
 		Image = image,
+		ImageColor3 = Color3.fromRGB(34, 34, 34),
 		[Roact.Event.Activated] = function(button: ImageButton)
-			button.ImageColor3 = Color3.fromRGB(255, 255, 255)
+			button.ImageColor3 = Color3.fromRGB(34, 34, 34)
 			task.defer(function()
 				if buttonTag:getValue() == text then
 					setButtonTag("")
@@ -141,11 +141,11 @@ local function OpenButton(props)
 		end,
 		[Roact.Event.MouseEnter] = function(button: ImageButton)
 			SFXController:PlaySFX("MouseEnter")
-			button.ImageColor3 = Color3.fromRGB(199, 199, 199)
+			button.ImageColor3 = Color3.fromRGB(65, 65, 65)
 			setButtonTag(text)
 		end,
 		[Roact.Event.MouseLeave] = function(button: ImageButton)
-			button.ImageColor3 = Color3.fromRGB(255, 255, 255)
+			button.ImageColor3 = Color3.fromRGB(34, 34, 34)
 			task.defer(function()
 				if buttonTag:getValue() == text then
 					setButtonTag("")

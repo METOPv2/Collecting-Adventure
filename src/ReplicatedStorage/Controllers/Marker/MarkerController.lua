@@ -82,7 +82,7 @@ function MarkerController:New(point: Vector3 | Instance, settings: Settings, poi
 		end
 
 		local path: Path = PathfindingService:CreatePath({
-			Costs = { ["Ground"] = 0, ["Grass"] = 100 },
+			Costs = { ["Ground"] = 0, ["Grass"] = 100, ["Ice"] = 0, ["Snow"] = 100 },
 		})
 
 		local active = true

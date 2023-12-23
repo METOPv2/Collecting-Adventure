@@ -19,10 +19,11 @@ local FruitsController = Knit.CreateController({
 function FruitsController:KnitInit()
 	self.TreesController = Knit.GetController("TreesController")
 	self.FruitsService = Knit.GetService("FruitsService")
-	self.NotificationsService = Knit.GetService("NotificationsService")
+	self.NotificationsController = Knit.GetController("NotificationsController")
 	self.GuiController = Knit.GetController("GuiController")
 	self.CharacterController = Knit.GetController("CharacterController")
 	self.PlayerEquipmentController = Knit.GetController("PlayerEquipmentController")
+	self.TutorialController = Knit.GetController("TutorialController")
 
 	self.FruitsService.FruitsSold:Connect(function(cash)
 		self.FruitsSold:Fire(cash)
@@ -61,7 +62,10 @@ end
 
 function FruitsController:HarvestFruit(fruit: Model, callback: () -> ())
 	local fruitHarvestedSignal = Signal.new()
-	local enableAllGui = self.GuiController:HideAllGui()
+	local enableAllGui
+	if not self.TutorialController.OnGoing then
+		enableAllGui = self.GuiController:HideAllGui()
+	end
 	self.GuiController:SetBillboardGuisEnabled(false)
 	ProximityPromptService.Enabled = false
 	self.CharacterController:Freeze()
@@ -110,7 +114,9 @@ function FruitsController:HarvestFruit(fruit: Model, callback: () -> ())
 		Camera.CameraType = Enum.CameraType.Custom
 		Camera.CFrame = previousCFrame
 		self.CharacterController:Unfreeze()
-		enableAllGui()
+		if not self.TutorialController.OnGoing then
+			enableAllGui()
+		end
 		self.GuiController:SetBillboardGuisEnabled(true)
 		ProximityPromptService.Enabled = true
 		fruitHarvestedSignal:Destroy()
@@ -169,7 +175,7 @@ function FruitsController:SpawnFruit(tree: Model, part: Part)
 			playerWhoTriggered:DistanceFromCharacter(fruit:GetPivot().Position)
 			> proximityPrompt.MaxActivationDistance
 		then
-			return self.NotificationsService:new(playerWhoTriggered, {
+			return self.NotificationsController:new({
 				text = "Come closer to fruit in order to be able to harvest it.",
 				title = "You're too far from the fruit",
 				duration = 5,

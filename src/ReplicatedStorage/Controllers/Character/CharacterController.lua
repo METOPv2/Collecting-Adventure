@@ -21,6 +21,7 @@ local CharacterController = Knit.CreateController({
 function CharacterController:KnitInit()
 	self.MonetizationController = Knit.GetController("MonetizationController")
 	self.PlayerDataController = Knit.GetController("PlayerDataController")
+	self.PlayerEquipmentController = Knit.GetController("PlayerEquipmentController")
 	self.SettingsController = Knit.GetController("SettingsController")
 
 	self.WalkSpeedPassEnabled = self.SettingsController:GetSetting("WalkSpeedPassEnabled")
@@ -91,13 +92,18 @@ function CharacterController:KnitStart()
 			return
 		end
 
+		local bootsData = self.PlayerEquipmentController:GetBootsData(self.PlayerEquipmentController:GetEquippedBoots())
+
 		if state == Enum.UserInputState.Begin then
-			humanoid.WalkSpeed = self.WalkSpeed * 2 * ((self.OwnsGamepass and self.WalkSpeedPassEnabled) and 1.5 or 1)
+			humanoid.WalkSpeed = self.WalkSpeed
+				* 2
+				* ((self.OwnsGamepass and self.WalkSpeedPassEnabled) and 1.5 or 1)
+				* (bootsData and bootsData.WalkSpeed or 1)
 			if trail and self.WalkSpeedPassEnabled then
 				trail.Enabled = true
 			end
 		else
-			humanoid.WalkSpeed = self.WalkSpeed
+			humanoid.WalkSpeed = self.WalkSpeed * (bootsData and bootsData.WalkSpeed or 1)
 			if trail then
 				trail.Enabled = false
 			end

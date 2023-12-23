@@ -3,6 +3,8 @@ return {
 		Name = "Added",
 		Content = {
 			"Fruit info in inventory",
+			"Gloves",
+			"Boots",
 		},
 	},
 	Changes = {
@@ -13,5 +15,5 @@ return {
 			"Fruit harvesting improvements",
 		},
 	},
-	ComingSoon = { Name = "Coming soon", Content = { "Gloves", "Boots", "Leaderboards" } },
+	ComingSoon = { Name = "Coming soon", Content = { "Leaderboards" } },
 }

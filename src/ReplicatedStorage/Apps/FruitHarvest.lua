@@ -162,14 +162,14 @@ local function FruitHarvest(props)
 			Size = UDim2.fromOffset(circleSize, circleSize),
 			Position = position,
 			BorderSizePixel = 0,
-			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			BackgroundColor3 = Color3.fromRGB(26, 26, 26),
 		}, {
 			UIStroke = Roact.createElement("UIStroke", {
 				Thickness = hoverTime:map(function(value)
-					return 5 * value / targetTime
+					return 1 + (4 * value / targetTime)
 				end),
 				Color = hoverTime:map(function(value)
-					return Color3.fromRGB(255, 0, 0):Lerp(Color3.fromRGB(0, 255, 0), value / targetTime)
+					return Color3.fromRGB(255, 255, 255):Lerp(Color3.fromRGB(0, 255, 0), value / targetTime)
 				end),
 			}),
 			UICorner = Roact.createElement("UICorner", {
@@ -182,7 +182,7 @@ local function FruitHarvest(props)
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				Position = UDim2.fromScale(0.5, 0.5),
 				Image = "rbxassetid://15715014883",
-				ImageColor3 = Color3.fromRGB(0, 0, 0),
+				ImageColor3 = Color3.fromRGB(255, 255, 255),
 			}),
 		}),
 		HoverTime = Roact.createElement("TextLabel", {

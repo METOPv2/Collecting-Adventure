@@ -146,7 +146,7 @@ function TutorialController:StartTutorial()
 					)
 
 					self.MarkerController
-						:New(workspace:WaitForChild("Trees").Pear, { Key = "TutorialStage3", Distane = 50 })
+						:New(workspace:WaitForChild("Trees").Pear, { Key = "TutorialStage3", Distance = 50 })
 						:await()
 
 					self.SFXController:PlaySFX("Switch")

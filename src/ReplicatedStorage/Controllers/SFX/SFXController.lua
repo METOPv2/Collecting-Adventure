@@ -50,13 +50,16 @@ function SFXController:KnitInit()
 			self:SetMusicVolume(value)
 		end
 	end)
+end
 
+function SFXController:KnitStart()
 	coroutine.wrap(function()
 		while true do
 			if not self.MusicEnabled then
 				self.MusicEnabledChanged:Wait()
 			end
-			self:PlayMusic()
+			self:StopCurrentPlayingMusic()
+			self:PlayMusic(musicAssets:GetChildren()[math.random(1, #musicAssets:GetChildren())])
 			self.MusicStoppedPlaying:Wait()
 		end
 	end)()
@@ -78,7 +81,7 @@ function SFXController:PlaySFX(sfx: string)
 		Debris:AddItem(sfx, sfx.TimeLength)
 	end
 
-	SoundService:PlayLocalSound(sfx)
+	sfx:Play()
 	self.SFXPlaying:Fire(sfx)
 end
 
@@ -100,19 +103,12 @@ function SFXController:SetSFXEnabled(value: boolean)
 	self.SFXEnabledChanged:Fire(value)
 end
 
-function SFXController:PlayMusic(music: Sound?)
-	self:StopCurrentPlayingMusic()
-
-	if not self.MusicEnabled then
+function SFXController:PlayMusic(music: Sound)
+	if music == nil then
+		warn("Music is missing.")
 		return
 	end
-
-	if not music then
-		music = musicAssets:GetChildren()[math.random(1, #musicAssets:GetChildren())]
-	end
-
-	if music:GetAttribute("Disabled") == true then
-		self.MusicStoppedPlaying:Fire()
+	if not self.MusicEnabled then
 		return
 	end
 
