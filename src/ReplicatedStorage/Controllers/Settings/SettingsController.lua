@@ -17,6 +17,7 @@ type Settings = {
 	CapacityPassEnabled: boolean,
 	WalkSpeedPassEnabled: boolean,
 	FruitPricePassEnabled: boolean,
+	LowPerformanceMode: boolean,
 }
 
 -- Settings controller
@@ -41,6 +42,7 @@ function SettingsController:KnitInit()
 		CapacityPassEnabled = "Capacity pass enabled",
 		WalkSpeedPassEnabled = "Walk speed pass enabled",
 		FruitPricePassEnabled = "Fruit price pass enabled",
+		LowPerformanceMode = "Low performance mode",
 	}
 
 	self.SettingsService
@@ -67,17 +69,14 @@ function SettingsController:KnitInit()
 		:catch(warn)
 		:await()
 
-	self.SettingsService.SettingChanged:Connect(function(key, volume)
+	self.SettingsService.SettingChanged:Connect(function(key, value)
+		self.Settings[key] = value
+		self.SettingChanged:Fire(key, value)
 		if key == "SFXVolume" then
-			self.SFXVolume = volume
+			self.SFXVolume = value
 		elseif key == "MusicVolume" then
-			self.MusicVolume = volume
+			self.MusicVolume = value
 		end
-	end)
-
-	self.SettingsService.SettingChanged:Connect(function(setting: string, value: any)
-		self.Settings[setting] = value
-		self.SettingChanged:Fire(setting, value)
 	end)
 
 	self.Initializing = false

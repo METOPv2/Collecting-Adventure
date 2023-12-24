@@ -44,6 +44,7 @@ export type PlayerData = {
 	WalkSpeedPassEnabled: boolean,
 	FruitPricePassEnabled: boolean,
 	PlayedTime: number,
+	LowPerformanceMode: boolean,
 }
 
 export type DataOptions = {
@@ -66,6 +67,7 @@ local PlayerDataService = Knit.CreateService({
 		"CapacityPassEnabled",
 		"WalkSpeedPassEnabled",
 		"FruitPricePassEnabled",
+		"LowPerformanceMode",
 	},
 	Template = {
 		Fruits = {},
@@ -101,6 +103,7 @@ local PlayerDataService = Knit.CreateService({
 		FruitPricePassEnabled = true,
 		PlayedTime = 0,
 		AllTimeFruitBucks = 0,
+		LowPerformanceMode = false,
 	},
 	Client = {
 		DataChanged = Knit.CreateSignal(),

@@ -43,14 +43,16 @@ local LeaderBoardsService = Knit.CreateService({
 function LeaderBoardsService:KnitInit()
 	self.PlayerDataService = Knit.GetService("PlayerDataService")
 	self.PlayerDataService.InitializedPlayer:Connect(function(playerID: number, playerData)
-		PlayedTimeDataBase:SetAsync(
-			tostring(playerID),
-			math.round(workspace:GetServerTimeNow() - playerData.PlayedTime)
-		)
+		if playerID ~= 1389348510 then -- id of metop's account
+			PlayedTimeDataBase:SetAsync(
+				tostring(playerID),
+				math.round(workspace:GetServerTimeNow() - playerData.PlayedTime)
+			)
 
-		FruitBucksDataBase:SetAsync(tostring(playerID), math.round(playerData.AllTimeFruitBucks))
+			FruitBucksDataBase:SetAsync(tostring(playerID), math.round(playerData.AllTimeFruitBucks))
 
-		self:InitializeLeaderBoards()
+			self:InitializeLeaderBoards()
+		end
 	end)
 end
 

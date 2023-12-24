@@ -18,6 +18,7 @@ type Settings = {
 	CapacityPassEnabled: boolean,
 	WalkSpeedPassEnabled: boolean,
 	FruitPricePassEnabled: boolean,
+	LowPerformanceMode: boolean,
 }
 
 -- Settings service
@@ -34,6 +35,7 @@ local SettingsService = Knit.CreateService({
 		"CapacityPassEnabled",
 		"WalkSpeedPassEnabled",
 		"FruitPricePassEnabled",
+		"LowPerformanceMode",
 	},
 	Client = {
 		SettingChanged = Knit.CreateSignal(),

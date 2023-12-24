@@ -5,6 +5,9 @@ return {
 			"Fruit info in inventory",
 			"Gloves",
 			"Boots",
+			"Leader boards",
+			"Low performance mode (in settings)",
+			"New fruit harvesting system",
 		},
 	},
 	Changes = {
@@ -12,8 +15,12 @@ return {
 		Content = {
 			"Christmas music",
 			"Map & lighting colors improvements",
-			"Fruit harvesting improvements",
 		},
 	},
-	ComingSoon = { Name = "Coming soon", Content = { "Leaderboards" } },
+	Fixes = {
+		Name = "Fixes",
+		Content = {
+			"Feedbacks (not tested)",
+		},
+	},
 }

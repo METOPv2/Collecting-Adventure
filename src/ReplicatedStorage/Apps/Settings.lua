@@ -94,7 +94,6 @@ end
 
 function Slider:render()
 	local SettingsController = Knit.GetController("SettingsController")
-	local SFXController = Knit.GetController("SFXController")
 
 	local id = self.props.id
 	local setting = self.props.setting
@@ -231,6 +230,9 @@ local function SettingsContent()
 			"CapacityPassEnabled",
 			"WalkSpeedPassEnabled",
 			"FruitPricePassEnabled",
+		},
+		Performance = {
+			"LowPerformanceMode",
 		},
 	}
 	local ids = {

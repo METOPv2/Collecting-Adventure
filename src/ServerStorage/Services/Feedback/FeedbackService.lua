@@ -55,7 +55,7 @@ function FeedbackService:Send(player: Player, data: { text: string })
 
 	local success, errorMessage = pcall(function()
 		return HttpService:PostAsync(
-			"https://discord.com/api/webhooks/1144875257346412574/SAO18VprUdGrJAGRfITJrKr1x2OyZ558fne1KY7F7TOU_g70Bepkx7_GWmTPEmd3-nxO",
+			"https://media.guilded.gg/webhooks/7fea9f4e-1680-44bd-b9d6-866b58cfeb6e/17TIODXJPiKuAwUwwmcqw2MMacM2IKouKqG6qaC0kmcam6MEQ2AiAwW2ac4y2sS04Q64ekA6c604Us8eqM6A6M",
 			encodedFeedbackData
 		)
 	end)
