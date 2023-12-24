@@ -43,6 +43,7 @@ export type PlayerData = {
 	CapacityPassEnabled: boolean,
 	WalkSpeedPassEnabled: boolean,
 	FruitPricePassEnabled: boolean,
+	PlayedTime: number,
 }
 
 export type DataOptions = {
@@ -98,6 +99,8 @@ local PlayerDataService = Knit.CreateService({
 		CapacityPassEnabled = true,
 		WalkSpeedPassEnabled = true,
 		FruitPricePassEnabled = true,
+		PlayedTime = 0,
+		AllTimeFruitBucks = 0,
 	},
 	Client = {
 		DataChanged = Knit.CreateSignal(),
@@ -117,6 +120,12 @@ function PlayerDataService:KnitInit()
 
 	Players.PlayerAdded:Connect(function(player)
 		self:InitializePlayer(player.UserId)
+	end)
+
+	self.DataChanged:Connect(function(userID, key, value, oldValue)
+		if key == "FruitBucks" and value > oldValue then
+			self:IncrementAsync(userID, "AllTimeFruitBucks", value - oldValue)
+		end
 	end)
 
 	Players.PlayerRemoving:Connect(function(player)
@@ -177,9 +186,13 @@ function PlayerDataService:InitializePlayer(playerId: number)
 		end
 
 		playerData.Visits += 1
+		playerData.PlayedTime = workspace:GetServerTimeNow() - playerData.PlayedTime
+		if playerData.AllTimeFruitBucks == 0 and playerData.FruitBucks ~= 0 then
+			playerData.AllTimeFruitBucks = playerData.FruitBucks
+		end
 
 		self.SessionDataBase[playerId] = playerData
-		self.InitializedPlayer:Fire(playerId)
+		self.InitializedPlayer:Fire(playerId, playerData)
 	else
 		warn(`Failed to get data. Error: {playerData}.`)
 	end
@@ -195,6 +208,7 @@ function PlayerDataService:DeInitializePlayer(player: Player | number)
 		return
 	end
 
+	playerData.PlayedTime = workspace:GetServerTimeNow() - playerData.PlayedTime
 	local success: boolean, errorMessage: string?
 
 	if self.SaveOnStudio then
@@ -206,7 +220,7 @@ function PlayerDataService:DeInitializePlayer(player: Player | number)
 	if success then
 		self.SessionDataBase[playerId].LeaveTime = workspace:GetServerTimeNow()
 		self.SessionDataBase[playerId] = nil
-		self.DeInitializedPlayer:Fire(player)
+		self.DeInitializedPlayer:Fire(player, playerData)
 	else
 		warn(`Failed to save data. Error: {errorMessage}`)
 	end
